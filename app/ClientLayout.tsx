@@ -4,7 +4,7 @@ import Login from "@/components/Login";
 import Sidebar from "@/components/Sidebar";
 import { ThreeDotsSpinner } from "@/components/Spinners";
 import { useAuth } from "@/hooks/useAuth";
-import React, { useEffect } from "react";
+import React from "react";
 
 function ClientLayout({
   children,
@@ -12,14 +12,6 @@ function ClientLayout({
   children: React.ReactNode;
 }>) {
   const { loading, user } = useAuth();
-
-  useEffect(() => {
-
-
-    if(user){
-        
-    }
-  },[user])
 
   if (!user && !loading) {
     return <Login />;

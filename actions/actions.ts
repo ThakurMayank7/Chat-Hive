@@ -8,7 +8,7 @@ import { User } from "firebase/auth";
 export async function signInHandler(user: User) {
   try {
     const userSnapshot = await adminDb.collection("users").doc(user.uid).get();
-
+    console.log("signing in user: " + user.uid);
     if (
       !userSnapshot.exists &&
       user.displayName &&
