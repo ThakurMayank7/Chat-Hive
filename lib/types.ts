@@ -1,11 +1,13 @@
-export interface User {
+import { Timestamp } from "firebase-admin/firestore";
+
+export interface UserData {
   name: string;
   email: string;
   profilePicture: string;
-  status: { state: "Online" | "Offline"; lastOnline: string };
+  status: { state: "Online" | "Offline"; lastOnline: Timestamp };
   groups: string[];
   chats: string[];
-  createdAt: string;
+  createdAt: Timestamp;
 }
 
 export interface ChatPreview {
