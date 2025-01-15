@@ -3,12 +3,32 @@
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
-import React from "react";
+import React, { useState } from "react";
 
 function Login() {
   const handleSignIn = () => {
+    setSigning(true);
     signInWithGoogle();
   };
+
+  const [signing, setSigning] = useState<boolean>(false);
+
+  if (signing) {
+    return (
+      <div className="h-screen w-screen">
+        <h1>Signing In in process...</h1>
+        <p>
+          If it does not work{" "}
+          <button
+            className="bg-gray-300 rounded p-1"
+            onClick={() => setSigning(false)}
+          >
+            Try Again
+          </button>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen flex items-center justify-center">

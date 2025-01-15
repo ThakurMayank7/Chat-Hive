@@ -1,9 +1,10 @@
 "use client";
 
 import Login from "@/components/Login";
+import Sidebar from "@/components/Sidebar";
 import { ThreeDotsSpinner } from "@/components/Spinners";
 import { useAuth } from "@/hooks/useAuth";
-import React from "react";
+import React, { useEffect } from "react";
 
 function ClientLayout({
   children,
@@ -12,7 +13,15 @@ function ClientLayout({
 }>) {
   const { loading, user } = useAuth();
 
-  if (!user) {
+  useEffect(() => {
+
+
+    if(user){
+        
+    }
+  },[user])
+
+  if (!user && !loading) {
     return <Login />;
   }
 
@@ -24,7 +33,12 @@ function ClientLayout({
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="h-screen w-screen flex flex-row">
+      <Sidebar />
+      <div>{children}</div>
+    </div>
+  );
 }
 
 export default ClientLayout;
