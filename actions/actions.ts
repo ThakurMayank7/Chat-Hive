@@ -5,8 +5,25 @@ import { UserData } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { User } from "firebase/auth";
 
-export async function signInHandler(user: User) {
-  console.log("signing in user: " + user.uid);
+export async function testing() {
+  console.log("testing");
+
+  try {
+    await adminDb.collection("users").doc("test").set({
+      name: "test",
+      email: "test@test.com",
+      profilePicture: "test",
+      status: "test",
+      groups: [],
+      chats: [],
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function createUser(user: User) {
+  console.log("creating user in database: " + user.uid);
   try {
     const userSnapshot = await adminDb.collection("users").doc(user.uid).get();
     if (

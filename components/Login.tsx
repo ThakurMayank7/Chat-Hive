@@ -1,6 +1,6 @@
 "use client";
 
-import { signInHandler } from "@/actions/actions";
+import { createUser, testing } from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
@@ -8,9 +8,12 @@ import React, { useState } from "react";
 
 function Login() {
   const handleSignIn = () => {
+    console.log('signing in started')
     setSigning(true);
     signInWithGoogle().then((user) => {
-      signInHandler(user);
+      console.log("creating user in database");
+      createUser(user);
+      testing();  
       setSigning(false);
     });
   };
