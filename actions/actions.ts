@@ -6,7 +6,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { User } from "firebase/auth";
 
 export async function signInHandler(user: User) {
-    console.log("signing in user: " + user.uid);
+  console.log("signing in user: " + user.uid);
   try {
     const userSnapshot = await adminDb.collection("users").doc(user.uid).get();
     if (

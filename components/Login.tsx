@@ -1,5 +1,6 @@
 "use client";
 
+import { signInHandler } from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
@@ -8,12 +9,13 @@ import React, { useState } from "react";
 function Login() {
   const handleSignIn = () => {
     setSigning(true);
-    signInWithGoogle();
+    signInWithGoogle().then((user) => {
+      signInHandler(user);
+      setSigning(false);
+    });
   };
 
   const [signing, setSigning] = useState<boolean>(false);
-
-  
 
   if (signing) {
     return (
@@ -43,7 +45,7 @@ function Login() {
           <br />
           <button
             className="w-fit border border-black rounded-full hover:bg-gray-200 bg-white"
-            onClick={handleSignIn}
+            onClick={() => handleSignIn()}
           >
             <div className="flex flex-row items-center justify-center gap-4 mx-4 my-1">
               <GoogleIcon />
