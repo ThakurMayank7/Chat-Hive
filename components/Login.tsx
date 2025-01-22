@@ -4,16 +4,22 @@ import { createUser, testing } from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
+import { FirebaseUser } from "@/lib/types";
 import React, { useState } from "react";
 
 function Login() {
-  const handleSignIn = () => {
-    console.log('signing in started')
+  const handleSignIn = async () => {
+    console.log("signing in started");
     setSigning(true);
-    signInWithGoogle().then((user) => {
+    await signInWithGoogle().then(async (user) => {
       console.log("creating user in database");
-      createUser(user);
-      testing();  
+      await createUser({
+        uid: user.uid,
+        displayName: user.displayName || "",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+      } as FirebaseUser);
+      testing();
       setSigning(false);
     });
   };

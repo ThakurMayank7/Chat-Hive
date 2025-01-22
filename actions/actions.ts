@@ -1,9 +1,8 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { UserData } from "@/lib/types";
+import { FirebaseUser, UserData } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
-import { User } from "firebase/auth";
 
 export async function testing() {
   console.log("testing");
@@ -22,7 +21,7 @@ export async function testing() {
   }
 }
 
-export async function createUser(user: User) {
+export async function createUser(user: FirebaseUser) {
   console.log("creating user in database: " + user.uid);
   try {
     const userSnapshot = await adminDb.collection("users").doc(user.uid).get();
