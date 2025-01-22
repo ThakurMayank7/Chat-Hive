@@ -12,8 +12,9 @@ import {
 import { ThreeDotsSpinner } from "./Spinners";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import { addNewChat, checkExistingUser } from "@/actions/actions";
+import { toast } from "@/hooks/use-toast";
 
-function AddChat({ chats ,uid}: { chats: string[],uid:string }) {
+function AddChat({ uid }: { uid: string }) {
   const [open, setOpen] = useState<boolean>(false);
 
   const [adding, setAdding] = useState<boolean>(false);
@@ -28,16 +29,20 @@ function AddChat({ chats ,uid}: { chats: string[],uid:string }) {
         await checkExistingUser(field)
           .then(async (result) => {
             if (result !== "not found" && result !== "error") {
-              await addNewChat([...chats, result],uid).then((result) => {
-                if(result)
-                {
-
+              await addNewChat({ chat: field, uid: uid }).then((result) => {
+                if (result) {
+                  toast(
+                    <span className="text-green-500">New Chat Added!</span>
+                  );
+                } else {
+                  toast(
+                    <span className="text-red-500">
+                      Some Error Occurred while adding new Chat!
+                    </span>
+                  );
                 }
-                else{
-                    
-                }
-              }
-            );
+                setAdding(false);
+              });
             }
           })
           .catch((error) => {
@@ -45,7 +50,6 @@ function AddChat({ chats ,uid}: { chats: string[],uid:string }) {
           });
       } catch (e) {
         console.error(e);
-      } finally {
         setAdding(false);
       }
     }

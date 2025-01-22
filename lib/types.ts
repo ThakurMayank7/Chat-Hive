@@ -22,6 +22,7 @@ export interface Message {
   type: "image" | "text";
   imageRef?: string;
   text?: string;
+  sendAt: Timestamp;
 }
 
 export interface FirebaseUser {
@@ -29,4 +30,10 @@ export interface FirebaseUser {
   displayName: string;
   email: string;
   photoURL: string;
+}
+
+export interface ChatCreationDetails {
+  participants: string[];
+  type:"private"|"group";
+  createdAt:Timestamp;
 }

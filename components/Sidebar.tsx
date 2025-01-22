@@ -43,9 +43,7 @@ function Sidebar({ syncState, userData, user }: SidebarProps) {
               <span className="text-md font-serif">{user.displayName}</span>
             </div>
             <div className="ml-auto">
-              <AddChat chats={userData?.chats===undefined?[]:userData.chats}
-              uid={user.uid}
-              />
+              <AddChat uid={user.uid} />
             </div>
           </div>
           <Separator />

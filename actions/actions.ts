@@ -1,7 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { FirebaseUser, UserData } from "@/lib/types";
+import { ChatCreationDetails, FirebaseUser, UserData } from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -56,28 +56,41 @@ export async function checkExistingUser(query: string): Promise<string> {
   }
 }
 
-export async function addNewChat(
-  chats: string[],
-  uid: string
-): Promise<boolean> {
-  if (!chats) {
-    console.error("chats not provided");
+export async function addNewChat({
+  type,
+  participants,
+}: {
+  type: string;
+  participants: string[];
+}): Promise<boolean> {
+  if (!type || !participants || participants.length === 0) {
+    console.error("Chat type or participants not provided");
     return false;
   }
+
   try {
-    await adminDb
-      .collection("users")
-      .doc(uid)
-      .set(
-        {
-          chats: FieldValue.arrayUnion(chats),
-        },
-        { merge: true }
-      );
+    const chatRef = adminDb.collection("chats").doc();
+    await chatRef.set({
+      type: type,
+      participants: participants,
+      createdAt: Timestamp.now(),
+    } as ChatCreationDetails);
+
+    for (const participant of participants) {
+      await adminDb
+        .collection("users")
+        .doc(participant)
+        .set(
+          {
+            chats: FieldValue.arrayUnion(chatRef.id),
+          },
+          { merge: true }
+        );
+    }
 
     return true;
   } catch (error) {
-    console.error("Could'nt add new chat", error);
+    console.error("Couldn't add new chat", error);
     return false;
   }
 }

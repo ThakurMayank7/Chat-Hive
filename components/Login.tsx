@@ -1,6 +1,6 @@
 "use client";
 
-import { createUser, testing } from "@/actions/actions";
+import { createUser} from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
@@ -19,7 +19,6 @@ function Login() {
         email: user.email || "",
         photoURL: user.photoURL || "",
       } as FirebaseUser);
-      testing();
       setSigning(false);
     });
   };
