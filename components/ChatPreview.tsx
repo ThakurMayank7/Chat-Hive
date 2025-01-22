@@ -1,9 +1,8 @@
-import React from 'react'
+import { ChatPreviewDetails } from "@/lib/types";
+import React from "react";
 
-function ChatPreview() {
-  return (
-    <div>ChatPreview</div>
-  )
+function ChatPreview({ chatPreview }: { chatPreview: ChatPreviewDetails }) {
+  return <div>{chatPreview.name}</div>;
 }
 
-export default ChatPreview
+export default ChatPreview;

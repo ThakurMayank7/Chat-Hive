@@ -3,8 +3,9 @@
 import Logo from "@/icons/Logo";
 import React from "react";
 import { Separator } from "./ui/separator";
-import { FirebaseUser, UserData } from "@/lib/types";
+import { ChatPreviewDetails, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
+import ChatPreview from "./ChatPreview";
 
 interface SidebarProps {
   syncState: boolean;
@@ -22,6 +23,24 @@ function Sidebar({ syncState, userData }: SidebarProps) {
       <Separator />
       {userData?.name}
       {syncState && <ThreeDotsSpinner />}
+      {!syncState &&
+        userData &&
+        userData.chats.map((chat: string) => {
+          return (
+            <ChatPreview
+              chatPreview={
+                {
+                  chatId: chat,
+                  name: "",
+                  lastMessage: "",
+                  lastMessageAt: "",
+                  type: "private",
+                } as ChatPreviewDetails
+              }
+              key={chat}
+            />
+          );
+        })}
     </div>
   );
 }

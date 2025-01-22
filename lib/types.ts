@@ -10,7 +10,7 @@ export interface UserData {
   createdAt: Timestamp;
 }
 
-export interface ChatPreview {
+export interface ChatPreviewDetails {
   chatId: string;
   name?: string; //if this is a group chat
   lastMessage: string;
