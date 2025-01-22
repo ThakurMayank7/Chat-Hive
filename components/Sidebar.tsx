@@ -7,8 +7,8 @@ import { ChatPreviewDetails, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
 import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AddChat from "./AddChat";
 
 interface SidebarProps {
   syncState: boolean;
@@ -43,7 +43,9 @@ function Sidebar({ syncState, userData, user }: SidebarProps) {
               <span className="text-md font-serif">{user.displayName}</span>
             </div>
             <div className="ml-auto">
-              <AiOutlinePlusCircle size={42} color="teal" />
+              <AddChat chats={userData?.chats===undefined?[]:userData.chats}
+              uid={user.uid}
+              />
             </div>
           </div>
           <Separator />
