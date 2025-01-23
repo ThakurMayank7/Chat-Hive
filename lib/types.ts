@@ -4,7 +4,6 @@ export interface UserData {
   name: string;
   email: string;
   profilePicture: string;
-  status: { state: "Online" | "Offline"; lastOnline: Timestamp };
   groups: string[];
   chats: string[];
   createdAt: Timestamp;
@@ -36,4 +35,5 @@ export interface ChatCreationDetails {
   participants: string[];
   type:"private"|"group";
   createdAt:Timestamp;
+  searchKeys:string[];
 }

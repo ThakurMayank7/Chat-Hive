@@ -18,7 +18,6 @@ export async function createUser(user: FirebaseUser) {
         name: user.displayName,
         email: user.email,
         profilePicture: user.photoURL,
-        status: { state: "Offline", lastOnline: Timestamp.now() },
         groups: [],
         chats: [],
         createdAt: Timestamp.now(),
@@ -55,6 +54,27 @@ export async function checkExistingUser(query: string): Promise<string> {
     return "error";
   }
 }
+async function getParticipantDetails(
+  participant: string
+): Promise<FirebaseUser | null> {
+  try {
+    const docSnapshot = await adminDb
+      .collection("users")
+      .doc(participant)
+      .get();
+
+    if (docSnapshot.exists) {
+      // Use type assertion to specify the type of the document data
+      return docSnapshot.data() as FirebaseUser;
+    } else {
+      console.warn(`Document with ID ${participant} does not exist.`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching user document:", error);
+    return null;
+  }
+}
 
 export async function addNewChat({
   type,
@@ -69,24 +89,49 @@ export async function addNewChat({
   }
 
   try {
+    // Deduplicate participants to avoid redundant processing
+    const uniqueParticipants = Array.from(new Set(participants));
+
+    // Generate search keys for all participants
+    const searchKeys: string[] = [];
+    await Promise.all(
+      uniqueParticipants.map(async (participant) => {
+        const participantDetails: FirebaseUser | null =
+          await getParticipantDetails(participant);
+
+        if (participantDetails) {
+          searchKeys.push(
+            ...generateSearchKeys(participantDetails.displayName)
+          );
+          searchKeys.push(...generateSearchKeys(participantDetails.email));
+          searchKeys.push(participantDetails.uid); // Add UID directly
+        }
+      })
+    );
+
+    // Create chat in Firestore
     const chatRef = adminDb.collection("chats").doc();
     await chatRef.set({
       type: type,
-      participants: participants,
+      participants: uniqueParticipants,
       createdAt: Timestamp.now(),
+      searchKeys: Array.from(new Set(searchKeys)), // Deduplicate search keys
     } as ChatCreationDetails);
 
-    for (const participant of participants) {
-      await adminDb
-        .collection("users")
-        .doc(participant)
-        .set(
-          {
-            chats: FieldValue.arrayUnion(chatRef.id),
-          },
-          { merge: true }
-        );
-    }
+    // Update each participant's chats array
+    await Promise.all(
+      uniqueParticipants.map((participant) =>
+        adminDb
+          .collection("users")
+          .doc(participant)
+          .set(
+            {
+              chats: FieldValue.arrayUnion(chatRef.id),
+            },
+            { merge: true }
+          )
+      )
+    );
 
     return true;
   } catch (error) {
@@ -94,3 +139,44 @@ export async function addNewChat({
     return false;
   }
 }
+
+export async function searchQuery(query: string): Promise<string[]> {
+  try {
+    const querySnapshot = await adminDb
+      .collection("chats")
+      .where("searchKeys", "array-contains", query.toLowerCase)
+      .get();
+
+    const results: string[] = [];
+    querySnapshot.forEach((doc) => {
+      // all related chats are added here
+      results.push(doc.id);
+    });
+
+    return results;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+function generateSearchKeys(parameter: string | undefined | null): string[] {
+  if (!parameter) {
+    console.warn("generateSearchKeys received an invalid parameter:", parameter);
+    return [];
+  }
+
+  const keys: string[] = [];
+  const lowercaseParameter = parameter.toLowerCase();
+
+  for (let i = 0; i < lowercaseParameter.length; i++) {
+    for (let j = i + 1; j <= lowercaseParameter.length; j++) {
+      keys.push(lowercaseParameter.substring(i, j));
+    }
+  }
+
+  return keys;
+}
+
+// Result for "John":
+// ["j", "jo", "joh", "john", "o", "oh", "ohn", "h", "hn", "n"]

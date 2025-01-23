@@ -1,7 +1,7 @@
 "use client";
 
 import Logo from "@/icons/Logo";
-import React from "react";
+import React, { useState } from "react";
 import { Separator } from "./ui/separator";
 import { ChatPreviewDetails, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
@@ -9,6 +9,7 @@ import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AddChat from "./AddChat";
+import Search from "./Search";
 
 interface SidebarProps {
   syncState: boolean;
@@ -18,6 +19,8 @@ interface SidebarProps {
 }
 
 function Sidebar({ syncState, userData, user }: SidebarProps) {
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+
   return (
     <div className="w-80 flex flex-col border-r-2">
       <ScrollArea className="h-full w-full">
@@ -47,6 +50,11 @@ function Sidebar({ syncState, userData, user }: SidebarProps) {
             </div>
           </div>
           <Separator />
+          <Search
+            setSearchResults={(queryResults: string[]) =>
+              setSearchResults(queryResults)
+            }
+          />
         </div>
         {syncState && <ThreeDotsSpinner />}
         {!syncState &&
@@ -67,6 +75,7 @@ function Sidebar({ syncState, userData, user }: SidebarProps) {
               />
             );
           })}
+        {searchResults}
       </ScrollArea>
     </div>
   );

@@ -22,36 +22,43 @@ function AddChat({ uid }: { uid: string }) {
   const [field, setField] = useState<string>("");
 
   const handleAddNewChat = async () => {
-    if (field) {
-      setAdding(true);
+    if (!field) return;
 
-      try {
-        await checkExistingUser(field)
-          .then(async (result) => {
-            if (result !== "not found" && result !== "error") {
-              await addNewChat({ chat: field, uid: uid }).then((result) => {
-                if (result) {
-                  toast(
-                    <span className="text-green-500">New Chat Added!</span>
-                  );
-                } else {
-                  toast(
-                    <span className="text-red-500">
-                      Some Error Occurred while adding new Chat!
-                    </span>
-                  );
-                }
-                setAdding(false);
-              });
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      } catch (e) {
-        console.error(e);
-        setAdding(false);
+    setAdding(true);
+
+    try {
+      // Check if the user exists
+      const result = await checkExistingUser(field);
+      if (result === "not found" || result === "error") {
+        toast(
+          <span className="text-red-500">
+            User not found or an error occurred!
+          </span>
+        );
+        return;
       }
+      console.log(result)
+
+      // Add a new chat
+      const chatAdded = await addNewChat({
+        participants: [uid, result],
+        type: "private",
+      });
+
+      if (chatAdded) {
+        toast(<span className="text-green-500">New Chat Added!</span>);
+      } else {
+        toast(
+          <span className="text-red-500">
+            Some Error Occurred while adding new Chat!
+          </span>
+        );
+      }
+    } catch (error) {
+      console.error("Error while adding new chat:", error);
+      toast(<span className="text-red-500">Unexpected error occurred!</span>);
+    } finally {
+      setAdding(false);
     }
   };
 

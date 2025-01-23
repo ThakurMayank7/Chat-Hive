@@ -67,7 +67,7 @@ export default function Home() {
         }}
         loading={loading}
       />
-      <div></div>
+      <div>{userData?.chats}</div>
     </div>
   );
 }
