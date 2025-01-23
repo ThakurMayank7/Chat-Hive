@@ -1,7 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { ChatCreationDetails, FirebaseUser, UserData } from "@/lib/types";
+import { FirebaseUser, UserData } from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -56,7 +56,7 @@ export async function checkExistingUser(query: string): Promise<string> {
 }
 async function getParticipantDetails(
   participant: string
-): Promise<FirebaseUser | null> {
+): Promise<UserData | null> {
   try {
     const docSnapshot = await adminDb
       .collection("users")
@@ -65,7 +65,7 @@ async function getParticipantDetails(
 
     if (docSnapshot.exists) {
       // Use type assertion to specify the type of the document data
-      return docSnapshot.data() as FirebaseUser;
+      return docSnapshot.data() as UserData;
     } else {
       console.warn(`Document with ID ${participant} does not exist.`);
       return null;
@@ -89,36 +89,43 @@ export async function addNewChat({
   }
 
   try {
-    // Deduplicate participants to avoid redundant processing
     const uniqueParticipants = Array.from(new Set(participants));
-
-    // Generate search keys for all participants
     const searchKeys: string[] = [];
+
     await Promise.all(
       uniqueParticipants.map(async (participant) => {
-        const participantDetails: FirebaseUser | null =
-          await getParticipantDetails(participant);
+        try {
+          const participantDetails = await getParticipantDetails(participant);
 
-        if (participantDetails) {
-          searchKeys.push(
-            ...generateSearchKeys(participantDetails.displayName)
-          );
-          searchKeys.push(...generateSearchKeys(participantDetails.email));
-          searchKeys.push(participantDetails.uid); // Add UID directly
+          if (participantDetails) {
+            console.log("Processing participant:", participantDetails);
+
+            if (participantDetails.name) {
+              searchKeys.push(...generateSearchKeys(participantDetails.name));
+            }
+            if (participantDetails.email) {
+              searchKeys.push(...generateSearchKeys(participantDetails.email));
+            }
+            searchKeys.push(participant);
+          } else {
+            console.warn(`No details found for participant: ${participant}`);
+          }
+        } catch (error) {
+          console.error(`Error processing participant: ${participant}`, error);
         }
       })
     );
 
-    // Create chat in Firestore
     const chatRef = adminDb.collection("chats").doc();
+    console.log("Creating chat with ID:", chatRef.id);
+
     await chatRef.set({
       type: type,
       participants: uniqueParticipants,
       createdAt: Timestamp.now(),
-      searchKeys: Array.from(new Set(searchKeys)), // Deduplicate search keys
-    } as ChatCreationDetails);
+      searchKeys: Array.from(new Set(searchKeys)),
+    });
 
-    // Update each participant's chats array
     await Promise.all(
       uniqueParticipants.map((participant) =>
         adminDb
@@ -133,12 +140,37 @@ export async function addNewChat({
       )
     );
 
+    console.log("Chat successfully created with ID:", chatRef.id);
     return true;
   } catch (error) {
-    console.error("Couldn't add new chat", error);
+    console.error("Couldn't add new chat:", error);
     return false;
   }
 }
+
+function generateSearchKeys(parameter: string | undefined | null): string[] {
+  if (!parameter) {
+    console.warn(
+      "generateSearchKeys received an invalid parameter:",
+      parameter
+    );
+    return [];
+  }
+
+  const keys: string[] = [];
+  const lowercaseParameter = parameter.toLowerCase();
+
+  for (let i = 0; i < lowercaseParameter.length; i++) {
+    for (let j = i + 1; j <= lowercaseParameter.length; j++) {
+      keys.push(lowercaseParameter.substring(i, j));
+    }
+  }
+
+  return keys;
+}
+
+// Result for "John":
+// ["j", "jo", "joh", "john", "o", "oh", "ohn", "h", "hn", "n"]
 
 export async function searchQuery(query: string): Promise<string[]> {
   try {
@@ -159,24 +191,3 @@ export async function searchQuery(query: string): Promise<string[]> {
     return [];
   }
 }
-
-function generateSearchKeys(parameter: string | undefined | null): string[] {
-  if (!parameter) {
-    console.warn("generateSearchKeys received an invalid parameter:", parameter);
-    return [];
-  }
-
-  const keys: string[] = [];
-  const lowercaseParameter = parameter.toLowerCase();
-
-  for (let i = 0; i < lowercaseParameter.length; i++) {
-    for (let j = i + 1; j <= lowercaseParameter.length; j++) {
-      keys.push(lowercaseParameter.substring(i, j));
-    }
-  }
-
-  return keys;
-}
-
-// Result for "John":
-// ["j", "jo", "joh", "john", "o", "oh", "ohn", "h", "hn", "n"]
