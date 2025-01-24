@@ -116,15 +116,21 @@ export async function addNewChat({
       })
     );
 
-    const chatRef = adminDb.collection("chats").doc();
+    const chatRef = adminDb.collection("chatMetaData").doc();
     console.log("Creating chat with ID:", chatRef.id);
 
     await chatRef.set({
       type: type,
       participants: uniqueParticipants,
       createdAt: Timestamp.now(),
-      searchKeys: Array.from(new Set(searchKeys)),
     });
+
+    await adminDb
+      .collection("searchKeys")
+      .doc(chatRef.id)
+      .set({
+        keys: Array.from(new Set(searchKeys)),
+      });
 
     await Promise.all(
       uniqueParticipants.map((participant) =>
@@ -158,7 +164,7 @@ function generateSearchKeys(parameter: string | undefined | null): string[] {
   }
 
   const keys: string[] = [];
-  const lowercaseParameter = parameter.toLowerCase();
+  const lowercaseParameter = parameter.toLowerCase().split(" ").join("");
 
   for (let i = 0; i < lowercaseParameter.length; i++) {
     for (let j = i + 1; j <= lowercaseParameter.length; j++) {
@@ -175,19 +181,13 @@ function generateSearchKeys(parameter: string | undefined | null): string[] {
 export async function searchQuery(query: string): Promise<string[]> {
   try {
     const querySnapshot = await adminDb
-      .collection("chats")
-      .where("searchKeys", "array-contains", query.toLowerCase)
+      .collection("searchKeys")
+      .where("keys", "array-contains", query.toLowerCase().split(" ").join(""))
       .get();
 
-    const results: string[] = [];
-    querySnapshot.forEach((doc) => {
-      // all related chats are added here
-      results.push(doc.id);
-    });
-
-    return results;
+    return querySnapshot.docs.map((doc) => doc.id);
   } catch (error) {
-    console.error(error);
+    console.error("Search query error:", error);
     return [];
   }
 }

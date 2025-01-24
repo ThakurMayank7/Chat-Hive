@@ -3,7 +3,7 @@
 import Logo from "@/icons/Logo";
 import React, { useState } from "react";
 import { Separator } from "./ui/separator";
-import { ChatPreviewDetails, FirebaseUser, UserData } from "@/lib/types";
+import { ChatPreviewDetailsPrivate, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
 import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
@@ -16,9 +16,11 @@ interface SidebarProps {
   userData: UserData | null;
   user: FirebaseUser;
   loading: boolean;
+  selectChat: (chatId: string) => void;
+  selectedChat: string | null;
 }
 
-function Sidebar({ syncState, userData, user }: SidebarProps) {
+function Sidebar({ syncState, userData, user, selectChat,selectedChat }: SidebarProps) {
   const [searchResults, setSearchResults] = useState<string[]>([]);
 
   return (
@@ -59,23 +61,43 @@ function Sidebar({ syncState, userData, user }: SidebarProps) {
         {syncState && <ThreeDotsSpinner />}
         {!syncState &&
           userData &&
+          searchResults.length === 0 &&
           userData.chats.map((chat: string) => {
             return (
               <ChatPreview
+              selectedChat={selectedChat}
+                clicked={(chatId) => selectChat(chatId)}
                 chatPreview={
                   {
                     chatId: chat,
                     name: "",
                     lastMessage: "",
                     lastMessageAt: "",
-                    type: "private",
-                  } as ChatPreviewDetails
+                  } as ChatPreviewDetailsPrivate
                 }
                 key={chat}
               />
             );
           })}
-        {searchResults}
+        {searchResults &&
+          searchResults.length > 0 &&
+          searchResults.map((chat: string) => {
+            return (
+              <ChatPreview
+              selectedChat={selectedChat}
+                clicked={(chatId) => selectChat(chatId)}
+                chatPreview={
+                  {
+                    chatId: chat,
+                    name: "",
+                    lastMessage: "",
+                    lastMessageAt: "",
+                  } as ChatPreviewDetailsPrivate
+                }
+                key={chat}
+              />
+            );
+          })}
       </ScrollArea>
     </div>
   );

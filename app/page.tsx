@@ -17,9 +17,13 @@ export default function Home() {
 
   const [syncing, setSyncing] = useState<boolean>(false);
 
+  const [selectedChat,setSelectedChat] = useState<string | null>(null);
+
   useEffect(() => {
     if (user && !loading) {
       setSyncing(true);
+
+
 
       const unsubscribe = onSnapshot(
         doc(db, "users", user.uid),
@@ -57,6 +61,8 @@ export default function Home() {
   return (
     <div className="h-screen w-screen flex flex-row">
       <Sidebar
+      selectedChat={selectedChat}
+      selectChat={(chatId) => setSelectedChat(chatId)}
         syncState={syncing}
         userData={userData || null}
         user={{
@@ -67,7 +73,7 @@ export default function Home() {
         }}
         loading={loading}
       />
-      <div>{userData?.chats}</div>
+      <div>{selectedChat}</div>
     </div>
   );
 }

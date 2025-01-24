@@ -30,7 +30,7 @@ function Search({
       <MdOutlinePersonSearch size={24} />
       <input
         className="bg-gray-200 rounded border-2 border-gray-400 text-sm p-1"
-        type="text"
+        type="search"
         value={query}
         onChange={handleQueryChanges}
         placeholder="Search for someone..."

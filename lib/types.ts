@@ -9,12 +9,13 @@ export interface UserData {
   createdAt: Timestamp;
 }
 
-export interface ChatPreviewDetails {
+export interface ChatPreviewDetailsPrivate {
   chatId: string;
-  name?: string; //if this is a group chat
+  name: string;
   lastMessage: string;
   lastMessageAt: string;
-  type: "group" | "private";
+  pfp:string;
+  unseenMessages:number;
 }
 
 export interface Message {
