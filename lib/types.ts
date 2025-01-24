@@ -9,13 +9,12 @@ export interface UserData {
   createdAt: Timestamp;
 }
 
-export interface ChatsMetadataPrivate {
+export interface ChatMetadataPrivate {
   chatId: string;
-  name: string;
   lastMessage: string;
-  lastMessageAt: string;
-  pfp:string;
-  unseenMessages:number;
+  lastMessageAt: Timestamp;
+  unseenMessages: number;
+  participants: string[];
 }
 
 export interface Message {
@@ -30,11 +29,4 @@ export interface FirebaseUser {
   displayName: string;
   email: string;
   photoURL: string;
-}
-
-export interface ChatCreationDetails {
-  participants: string[];
-  type:"private"|"group";
-  createdAt:Timestamp;
-  searchKeys:string[];
 }

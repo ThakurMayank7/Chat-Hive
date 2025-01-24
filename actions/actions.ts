@@ -1,7 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { FirebaseUser, UserData } from "@/lib/types";
+import { ChatMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -76,14 +76,13 @@ async function getParticipantDetails(
   }
 }
 
-export async function addNewChat({
-  type,
+export async function addNewPrivateChat({
   participants,
 }: {
   type: string;
   participants: string[];
 }): Promise<boolean> {
-  if (!type || !participants || participants.length === 0) {
+  if (!participants || participants.length === 0) {
     console.error("Chat type or participants not provided");
     return false;
   }
@@ -119,11 +118,15 @@ export async function addNewChat({
     const chatRef = adminDb.collection("chatMetaData").doc();
     console.log("Creating chat with ID:", chatRef.id);
 
-    await chatRef.set({
-      type: type,
+    const chatMetadata: ChatMetadataPrivate = {
+      chatId: chatRef.id,
+      lastMessage: "",
+      lastMessageAt: Timestamp.now(),
+      unseenMessages: 0,
       participants: uniqueParticipants,
-      createdAt: Timestamp.now(),
-    });
+    };
+
+    await chatRef.set(chatMetadata);
 
     await adminDb
       .collection("searchKeys")
@@ -155,24 +158,18 @@ export async function addNewChat({
 }
 
 function generateSearchKeys(parameter: string | undefined | null): string[] {
-  if (!parameter) {
-    console.warn(
-      "generateSearchKeys received an invalid parameter:",
-      parameter
-    );
-    return [];
-  }
+  if (!parameter) return [];
 
-  const keys: string[] = [];
-  const lowercaseParameter = parameter.toLowerCase().split(" ").join("");
-
-  for (let i = 0; i < lowercaseParameter.length; i++) {
-    for (let j = i + 1; j <= lowercaseParameter.length; j++) {
-      keys.push(lowercaseParameter.substring(i, j));
-    }
-  }
-
-  return keys;
+  const lowercaseParameter = parameter.toLowerCase().replace(/\s/g, "");
+  return Array.from(
+    new Set(
+      Array.from({ length: lowercaseParameter.length }, (_, i) =>
+        Array.from({ length: lowercaseParameter.length - i }, (_, j) =>
+          lowercaseParameter.slice(i, i + j + 1)
+        )
+      ).flat()
+    )
+  );
 }
 
 // Result for "John":
