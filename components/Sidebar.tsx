@@ -3,7 +3,7 @@
 import Logo from "@/icons/Logo";
 import React, { useState } from "react";
 import { Separator } from "./ui/separator";
-import { ChatsMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
+import { ChatMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
 import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
@@ -18,10 +18,12 @@ interface SidebarProps {
   loading: boolean;
   selectChat: (chatId: string) => void;
   selectedChat: string | null;
-  chatsMetadata: ChatsMetadataPrivate[];
+  chatsMetadata: ChatMetadataPrivate[];
+  participantsDetails: { data: UserData; id: string }[];
 }
 
 function Sidebar({
+  participantsDetails,
   syncState,
   userData,
   user,
@@ -67,22 +69,28 @@ function Sidebar({
           />
         </div>
         {syncState && <ThreeDotsSpinner />}
+
         {!syncState &&
           userData &&
           searchResults.length === 0 &&
           userData.chats.map((chat: string) => {
             return (
               <ChatPreview
+                participantDetails={
+                  participantsDetails.filter((participant) =>
+                    chatsMetadata
+                      .find((metadata) => metadata.chatId === chat)
+                      ?.participants.includes(participant.id)
+                  )[0]
+                }
                 selectedChat={selectedChat}
                 clicked={(chatId) => selectChat(chatId)}
-                chatPreview={
-                  {
-                    chatId: chat,
-                    name: "",
-                    lastMessage: "",
-                    lastMessageAt: "",
-                  } as ChatsMetadataPrivate
+                metadata={
+                  chatsMetadata.find(
+                    (metadata) => metadata.chatId === chat
+                  ) as ChatMetadataPrivate
                 }
+                user={user}
                 key={chat}
               />
             );
@@ -94,16 +102,21 @@ function Sidebar({
             .map((chat: string) => {
               return (
                 <ChatPreview
+                  participantDetails={
+                    participantsDetails.filter((participant) =>
+                      chatsMetadata
+                        .find((metadata) => metadata.chatId === chat)
+                        ?.participants.includes(participant.id)
+                    )[0]
+                  }
                   selectedChat={selectedChat}
                   clicked={(chatId) => selectChat(chatId)}
-                  chatPreview={
-                    {
-                      chatId: chat,
-                      name: "",
-                      lastMessage: "",
-                      lastMessageAt: "",
-                    } as ChatsMetadataPrivate
+                  metadata={
+                    chatsMetadata.find(
+                      (metadata) => metadata.chatId === chat
+                    ) as ChatMetadataPrivate
                   }
+                  user={user}
                   key={chat}
                 />
               );

@@ -4,7 +4,7 @@ import Login from "@/components/Login";
 import Sidebar from "@/components/Sidebar";
 import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
-import { doc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatMetadataPrivate, UserData } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
@@ -21,6 +21,12 @@ export default function Home() {
 
   const [chatsMetadata, setChatsMetadata] = useState<ChatMetadataPrivate[]>([]);
 
+  const [initialized, setInitialized] = useState<boolean>(false);
+
+  const [participantsDetails, setParticipantsDetails] = useState<
+    { data: UserData; id: string }[]
+  >([]);
+
   useEffect(() => {
     if (user && !loading) {
       setSyncing(true);
@@ -29,9 +35,32 @@ export default function Home() {
         doc(db, "users", user.uid),
         async (snapshot) => {
           if (snapshot.exists()) {
-            const data = snapshot.data();
+            const userDataSynced: UserData = snapshot.data() as UserData;
 
-            setUserData(data as UserData);
+            setUserData(userDataSynced);
+            console.log("fetching metadata for chats", userDataSynced.chats);
+            for (const chatId of userDataSynced.chats) {
+              if (!chatsMetadata.some((chat) => chat.chatId === chatId)) {
+                const metadataSnapshot = await getDoc(
+                  doc(db, "chatMetaData", chatId)
+                );
+
+                if (metadataSnapshot.exists()) {
+                  const metadata =
+                    metadataSnapshot.data() as ChatMetadataPrivate;
+                  console.log(metadata);
+                  setChatsMetadata((prev) => {
+                    if (prev.some((chat) => chat.chatId === metadata?.chatId)) {
+                      return prev.map((chat) =>
+                        chat.chatId === metadata?.chatId ? metadata : chat
+                      );
+                    } else {
+                      return [...prev, metadata as ChatMetadataPrivate];
+                    }
+                  });
+                }
+              }
+            }
           } else {
             console.warn("No userData found for the user.");
           }
@@ -43,13 +72,36 @@ export default function Home() {
         }
       );
 
-      const notificationListenerUnsubscribe = onSnapshot(
-        doc(db, "notification", user.uid),
+      const syncUnsubscribe = onSnapshot(
+        doc(db, "syncRequests", user.uid),
         async (snapshot) => {
-          if (snapshot.exists()) {
+          if (snapshot.exists() && initialized) {
             const data = snapshot.data();
 
-            // setChatsMetadata(data as ChatMetadataPrivate[]);
+            const request: string = data.update;
+
+            try {
+              const metadataSnapshot = await getDoc(
+                doc(db, "chatMetaData", request)
+              );
+
+              if (metadataSnapshot.exists()) {
+                const metadata = metadataSnapshot.data() as ChatMetadataPrivate;
+                setChatsMetadata((prev) => {
+                  if (prev.some((chat) => chat.chatId === metadata?.chatId)) {
+                    return prev.map((chat) =>
+                      chat.chatId === metadata?.chatId ? metadata : chat
+                    );
+                  } else {
+                    return [...prev, metadata as ChatMetadataPrivate];
+                  }
+                });
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          } else if (!initialized) {
+            setInitialized(true);
           } else {
             console.warn("No chatsMetadata found for the user.");
           }
@@ -63,10 +115,35 @@ export default function Home() {
 
       return () => {
         unsubscribe();
-        notificationListenerUnsubscribe();
+        syncUnsubscribe();
       };
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    if (chatsMetadata && chatsMetadata.length > 0 && user && !loading) {
+      const sync = async () => {
+        for (const mData of chatsMetadata) {
+          for (const participant of mData.participants) {
+            if (
+              !participantsDetails.some((p) => p.id === participant) &&
+              participant !== user.uid
+            ) {
+              const snapshot = await getDoc(doc(db, "users", participant));
+              if (snapshot.exists()) {
+                const data = snapshot.data() as UserData;
+                setParticipantsDetails((prev) => [
+                  ...prev,
+                  { data: data, id: participant },
+                ]);
+              }
+            }
+          }
+        }
+      };
+      sync();
+    }
+  }, [chatsMetadata]);
 
   if (!user && !loading) {
     return <Login />;
@@ -83,6 +160,7 @@ export default function Home() {
   return (
     <div className="h-screen w-screen flex flex-row">
       <Sidebar
+        participantsDetails={participantsDetails}
         chatsMetadata={chatsMetadata}
         selectedChat={selectedChat}
         selectChat={(chatId) => setSelectedChat(chatId)}
@@ -98,27 +176,13 @@ export default function Home() {
       />
       <div>
         {selectedChat}
-
-        {selectedChat ? (
-          <div className="flex-1">
-            {/* Render selected chat details */}
-            {chatsMetadata.find((chat) => chat.chatId === selectedChat) && (
-              <div>
-                <h1>
-                  {/* Render participants names or other details */}
-                  {chatsMetadata
-                    .find((chat) => chat.chatId === selectedChat)
-                    ?.participants.join(", ")}
-                </h1>
-                <p>{/* Last message or other chat details */}</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            Select a chat to start messaging
-          </div>
-        )}
+        {participantsDetails.map((participant) => {
+          return <div key={participant.id}>{participant.id}</div>;
+        })}
+        <br />
+        {chatsMetadata.map((chat) => {
+          return <div key={chat.chatId}>{chat.chatId}</div>;
+        })}
       </div>
     </div>
   );
