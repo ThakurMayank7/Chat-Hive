@@ -11,7 +11,7 @@ import {
 } from "./ui/dialog";
 import { ThreeDotsSpinner } from "./Spinners";
 import { AiOutlinePlusCircle } from "react-icons/ai";
-import { addNewChat, checkExistingUser } from "@/actions/actions";
+import { addNewPrivateChat, checkExistingUser } from "@/actions/actions";
 import { toast } from "@/hooks/use-toast";
 
 function AddChat({ uid }: { uid: string }) {
@@ -37,10 +37,10 @@ function AddChat({ uid }: { uid: string }) {
         );
         return;
       }
-      console.log(result)
+      console.log(result);
 
       // Add a new chat
-      const chatAdded = await addNewChat({
+      const chatAdded = await addNewPrivateChat({
         participants: [uid, result],
         type: "private",
       });

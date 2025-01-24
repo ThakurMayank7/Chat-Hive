@@ -6,7 +6,7 @@ import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
 import { doc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
-import { ChatsMetadataPrivate, UserData } from "@/lib/types";
+import { ChatMetadataPrivate, UserData } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
@@ -19,16 +19,7 @@ export default function Home() {
 
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
 
-  const [chatsMetadata, setChatsMetadata] = useState<ChatsMetadataPrivate[]>(
-    []
-  );
-
-  const [activeListeners, setActiveListeners] = useState<Set<string>>(
-    new Set()
-  );
-  const [chatListeners, setChatListeners] = useState<{
-    [key: string]: () => void;
-  }>({});
+  const [chatsMetadata, setChatsMetadata] = useState<ChatMetadataPrivate[]>([]);
 
   useEffect(() => {
     if (user && !loading) {
@@ -51,80 +42,31 @@ export default function Home() {
           setSyncing(false);
         }
       );
-      return () => unsubscribe();
+
+      const notificationListenerUnsubscribe = onSnapshot(
+        doc(db, "notification", user.uid),
+        async (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+
+            // setChatsMetadata(data as ChatMetadataPrivate[]);
+          } else {
+            console.warn("No chatsMetadata found for the user.");
+          }
+          setSyncing(false);
+        },
+        (error) => {
+          console.error("Error fetching chats metadata:", error);
+          setSyncing(false);
+        }
+      );
+
+      return () => {
+        unsubscribe();
+        notificationListenerUnsubscribe();
+      };
     }
   }, [user, loading]);
-
-  useEffect(() => {
-    if (!userData?.chats) return;
-
-    const currentChatIds = new Set(userData.chats);
-    const currentListeners = new Set(activeListeners);
-
-    // Remove listeners for chats no longer in userData
-    Object.keys(chatListeners).forEach((chatId) => {
-      if (!currentChatIds.has(chatId)) {
-        chatListeners[chatId]();
-        delete chatListeners[chatId];
-        currentListeners.delete(chatId);
-      }
-    });
-
-    // Add listeners for new chats
-    userData.chats.forEach((chatId) => {
-      if (!currentListeners.has(chatId)) {
-        const unsubscribe = onSnapshot(
-          doc(db, "chatsMetadata", chatId),
-          (snapshot) => {
-            const data = snapshot.data();
-            if (data) {
-              const metadata: ChatsMetadataPrivate = {
-                chatId,
-                name: data.name ?? "",
-                lastMessage: data.lastMessage ?? "",
-                lastMessageAt: data.lastMessageAt ?? "",
-                pfp: data.pfp ?? "",
-                unseenMessages: data.unseenMessages ?? 0,
-              };
-
-              setChatsMetadata((prev) => {
-                const chatIndex = prev.findIndex(
-                  (chat) => chat.chatId === chatId
-                );
-
-                if (chatIndex === -1) {
-                  return [...prev, metadata];
-                }
-
-                const updatedChats = [...prev];
-                updatedChats[chatIndex] = {
-                  ...updatedChats[chatIndex],
-                  ...metadata,
-                };
-
-                return updatedChats;
-              });
-            }
-          },
-          (error) => {
-            console.error(`Error in chat ${chatId} listener:`, error);
-          }
-        );
-
-        setChatListeners((prev) => ({
-          ...prev,
-          [chatId]: unsubscribe,
-        }));
-        currentListeners.add(chatId);
-      }
-    });
-
-    setActiveListeners(currentListeners);
-
-    return () => {
-      Object.values(chatListeners).forEach((unsub) => unsub());
-    };
-  }, [userData?.chats]);
 
   if (!user && !loading) {
     return <Login />;
@@ -157,14 +99,26 @@ export default function Home() {
       <div>
         {selectedChat}
 
-        {chatsMetadata.map((chat) => {
-          return (
-            <div key={chat.chatId}>
-              <h1>{chat.name}</h1>
-              <p>{chat.lastMessage}</p>
-            </div>
-          );
-        })}
+        {selectedChat ? (
+          <div className="flex-1">
+            {/* Render selected chat details */}
+            {chatsMetadata.find((chat) => chat.chatId === selectedChat) && (
+              <div>
+                <h1>
+                  {/* Render participants names or other details */}
+                  {chatsMetadata
+                    .find((chat) => chat.chatId === selectedChat)
+                    ?.participants.join(", ")}
+                </h1>
+                <p>{/* Last message or other chat details */}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            Select a chat to start messaging
+          </div>
+        )}
       </div>
     </div>
   );
