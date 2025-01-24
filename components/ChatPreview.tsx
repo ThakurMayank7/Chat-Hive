@@ -1,4 +1,4 @@
-import { ChatPreviewDetailsPrivate } from "@/lib/types";
+import { ChatsMetadataPrivate } from "@/lib/types";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BsThreeDots } from "react-icons/bs";
@@ -8,11 +8,11 @@ function ChatPreview({
   selectedChat,
   clicked,
 }: {
-  chatPreview: ChatPreviewDetailsPrivate;
+  chatPreview: ChatsMetadataPrivate;
   selectedChat: string | null;
   clicked: (chatId: string) => void;
 }) {
-  const test: ChatPreviewDetailsPrivate = {
+  const test: ChatsMetadataPrivate = {
     chatId: "123",
     name: "Mayank Singh",
     lastMessage: "Hello, This is Mayank. Student at Amity Noida",

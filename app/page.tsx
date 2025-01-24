@@ -6,7 +6,7 @@ import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
 import { doc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
-import { UserData } from "@/lib/types";
+import { ChatsMetadataPrivate, UserData } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
@@ -18,6 +18,8 @@ export default function Home() {
   const [syncing, setSyncing] = useState<boolean>(false);
 
   const [selectedChat,setSelectedChat] = useState<string | null>(null);
+
+  const [chatsMetadata, setChatsMetadata] = useState<ChatsMetadataPrivate[]>([]);
 
   useEffect(() => {
     if (user && !loading) {
@@ -46,6 +48,10 @@ export default function Home() {
     }
   }, [user, loading]);
 
+useEffect(() => {
+
+},[userData?.chats])
+
   if (!user && !loading) {
     return <Login />;
   }
@@ -61,6 +67,7 @@ export default function Home() {
   return (
     <div className="h-screen w-screen flex flex-row">
       <Sidebar
+      chatsMetadata={chatsMetadata}
       selectedChat={selectedChat}
       selectChat={(chatId) => setSelectedChat(chatId)}
         syncState={syncing}

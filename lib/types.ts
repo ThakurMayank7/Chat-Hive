@@ -9,7 +9,7 @@ export interface UserData {
   createdAt: Timestamp;
 }
 
-export interface ChatPreviewDetailsPrivate {
+export interface ChatsMetadataPrivate {
   chatId: string;
   name: string;
   lastMessage: string;

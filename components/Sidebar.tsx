@@ -3,7 +3,7 @@
 import Logo from "@/icons/Logo";
 import React, { useState } from "react";
 import { Separator } from "./ui/separator";
-import { ChatPreviewDetailsPrivate, FirebaseUser, UserData } from "@/lib/types";
+import { ChatsMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
 import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
@@ -18,9 +18,17 @@ interface SidebarProps {
   loading: boolean;
   selectChat: (chatId: string) => void;
   selectedChat: string | null;
+  chatsMetadata: ChatsMetadataPrivate[];
 }
 
-function Sidebar({ syncState, userData, user, selectChat,selectedChat }: SidebarProps) {
+function Sidebar({
+  syncState,
+  userData,
+  user,
+  selectChat,
+  selectedChat,
+  chatsMetadata,
+}: SidebarProps) {
   const [searchResults, setSearchResults] = useState<string[]>([]);
 
   return (
@@ -65,7 +73,7 @@ function Sidebar({ syncState, userData, user, selectChat,selectedChat }: Sidebar
           userData.chats.map((chat: string) => {
             return (
               <ChatPreview
-              selectedChat={selectedChat}
+                selectedChat={selectedChat}
                 clicked={(chatId) => selectChat(chatId)}
                 chatPreview={
                   {
@@ -73,7 +81,7 @@ function Sidebar({ syncState, userData, user, selectChat,selectedChat }: Sidebar
                     name: "",
                     lastMessage: "",
                     lastMessageAt: "",
-                  } as ChatPreviewDetailsPrivate
+                  } as ChatsMetadataPrivate
                 }
                 key={chat}
               />
@@ -81,23 +89,25 @@ function Sidebar({ syncState, userData, user, selectChat,selectedChat }: Sidebar
           })}
         {searchResults &&
           searchResults.length > 0 &&
-          searchResults.map((chat: string) => {
-            return (
-              <ChatPreview
-              selectedChat={selectedChat}
-                clicked={(chatId) => selectChat(chatId)}
-                chatPreview={
-                  {
-                    chatId: chat,
-                    name: "",
-                    lastMessage: "",
-                    lastMessageAt: "",
-                  } as ChatPreviewDetailsPrivate
-                }
-                key={chat}
-              />
-            );
-          })}
+          searchResults
+            .filter((result) => userData?.chats.includes(result))
+            .map((chat: string) => {
+              return (
+                <ChatPreview
+                  selectedChat={selectedChat}
+                  clicked={(chatId) => selectChat(chatId)}
+                  chatPreview={
+                    {
+                      chatId: chat,
+                      name: "",
+                      lastMessage: "",
+                      lastMessageAt: "",
+                    } as ChatsMetadataPrivate
+                  }
+                  key={chat}
+                />
+              );
+            })}
       </ScrollArea>
     </div>
   );
