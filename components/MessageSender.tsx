@@ -1,5 +1,6 @@
 import { sendTextMessage } from "@/actions/actions";
 import React, { useState } from "react";
+import { LoadingSpinner } from "./Spinners";
 
 function MessageSender({
   chatId,
@@ -46,7 +47,7 @@ function MessageSender({
         onClick={() => handleMessageSender()}
         className="bg-green-500 text-white py-2 px-6 rounded"
       >
-        Send
+        {sending ? <LoadingSpinner /> : "Send"}
       </button>
     </div>
   );
