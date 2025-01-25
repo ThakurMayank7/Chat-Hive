@@ -1,7 +1,12 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { ChatMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
+import {
+  ChatMetadataPrivate,
+  FirebaseUser,
+  Message,
+  UserData,
+} from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -186,5 +191,33 @@ export async function searchQuery(query: string): Promise<string[]> {
   } catch (error) {
     console.error("Search query error:", error);
     return [];
+  }
+}
+
+export async function sendTextMessage({
+  chatId,
+  messageText,
+  senderId,
+}: {
+  senderId: string;
+  chatId: string;
+  messageText: string;
+}): Promise<boolean> {
+  try {
+    await adminDb
+      .collection("chats")
+      .doc("private")
+      .collection(chatId)
+      .add({
+        type: "text",
+        sender: senderId,
+        text: messageText,
+        sendAt: Timestamp.now(),
+      } as Message);
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
   }
 }

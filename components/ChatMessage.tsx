@@ -77,7 +77,7 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
                   }
                 `}
           >
-            {message.sendAt.toDate().toLocaleTimeString()}
+            {/* {message.sendAt.toDate().toLocaleTimeString()} */}
           </div>
         </div>
       </div>

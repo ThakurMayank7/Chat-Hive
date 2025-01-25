@@ -5,15 +5,9 @@ import React, { useEffect } from "react";
 import ChatMessage from "./ChatMessage";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import {
-  addDoc,
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase/firebaseConfig";
+import MessageSender from "./MessageSender";
 
 interface ChatProps {
   chatMetaData: ChatMetadataPrivate | null;
@@ -30,8 +24,8 @@ function Chat({ chatMetaData, userId, personData }: ChatProps) {
       const messagesRef = collection(
         db,
         "chats",
-        chatMetaData.chatId,
-        "messages"
+        "private",
+        chatMetaData.chatId
       );
 
       // Optional: Query messages ordered by timestamp (or you can query by other fields)
@@ -86,31 +80,7 @@ function Chat({ chatMetaData, userId, personData }: ChatProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-gray-100 flex items-center gap-2">
-        <input
-          placeholder="Type your message..."
-          // value={newMessage}
-          // onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1"
-        />
-        <button
-          //  onClick={handleSendMessage}
-          onClick={async () => {
-            ("messages");
-
-            const ref = collection(db, "chats", "private", chatMetaData.chatId);
-            await addDoc(ref, {
-              type: "text",
-              text: "Hello",
-              sender: userId,
-              sendAt: Timestamp.now(),
-            } as Message);
-          }}
-          className="bg-blue-500 text-white"
-        >
-          Send
-        </button>
-      </div>
+      <MessageSender senderId={userId} chatId={chatMetaData.chatId} />
     </div>
   );
 }
