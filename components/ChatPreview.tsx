@@ -51,7 +51,7 @@ function ChatPreview({
               <span className="truncate max-w-[200px]">
                 {metadata.lastMessage}
               </span>
-              <span>{metadata.lastMessageAt.toDate().toISOString()}</span>
+              <span>{metadata.lastMessageAt.toDate().toLocaleString()}</span>
             </div>
           </div>
         </div>

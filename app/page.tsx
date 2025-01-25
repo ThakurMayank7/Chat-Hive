@@ -150,7 +150,7 @@ export default function Home() {
     return <Login />;
   }
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex items-center justify-center h-screen w-screen">
         <ThreeDotsSpinner />
@@ -168,26 +168,36 @@ export default function Home() {
         syncState={syncing}
         userData={userData || null}
         user={{
-          uid: user?.uid || "",
-          displayName: user?.displayName || "",
-          email: user?.email || "",
-          photoURL: user?.photoURL || "",
+          uid: user.uid || "",
+          displayName: user.displayName || "",
+          email: user.email || "",
+          photoURL: user.photoURL || "",
         }}
         loading={loading}
       />
-      <div className="flex-1 h-full w-full">
+      <div className="flex items-center justify-center h-full w-full">
         {selectedChat ? (
           <Chat
+            personData={
+              (participantsDetails.find(
+                (p) =>
+                  p.id ===
+                  chatsMetadata
+                    .find((chat) => chat.chatId === selectedChat)
+                    ?.participants.find(
+                      (participant) => participant !== user.uid
+                    )
+              )?.data as UserData) || null
+            }
+            userId={user.uid}
             chatMetaData={
               chatsMetadata.find((chat) => chat.chatId === selectedChat) || null
             }
           />
         ) : (
-          <div className="flex items-center justify-center h-full w-full">
-            <span className="text-3xl text-gray-500">
-              Select a chat to start messaging
-            </span>
-          </div>
+          <span className="text-3xl text-gray-500">
+            Select a chat to start messaging
+          </span>
         )}
       </div>
     </div>

@@ -53,7 +53,9 @@ function Sidebar({
                 }
                 `}
               />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>
+                {user.displayName?.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-center justify-center ml-2">
               <span className="text-md font-serif">{user.displayName}</span>
