@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ChatMetadataPrivate, UserData } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
+import Chat from "@/components/Chat";
 
 export default function Home() {
   const { loading, user } = useAuth();
@@ -174,15 +175,20 @@ export default function Home() {
         }}
         loading={loading}
       />
-      <div>
-        {selectedChat}
-        {participantsDetails.map((participant) => {
-          return <div key={participant.id}>{participant.id}</div>;
-        })}
-        <br />
-        {chatsMetadata.map((chat) => {
-          return <div key={chat.chatId}>{chat.chatId}</div>;
-        })}
+      <div className="flex-1 h-full w-full">
+        {selectedChat ? (
+          <Chat
+            chatMetaData={
+              chatsMetadata.find((chat) => chat.chatId === selectedChat) || null
+            }
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full w-full">
+            <span className="text-3xl text-gray-500">
+              Select a chat to start messaging
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

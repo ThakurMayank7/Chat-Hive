@@ -1,9 +1,16 @@
-import React from 'react'
+import { ChatMetadataPrivate } from "@/lib/types";
+import React from "react";
 
-function Chat() {
-  return (
-    <div>Chat</div>
-  )
+interface ChatProps {
+  chatMetaData: ChatMetadataPrivate | null;
 }
 
-export default Chat
+function Chat({ chatMetaData }: ChatProps) {
+  if (!chatMetaData) {
+    return null;
+  }
+
+  return <div>{chatMetaData.chatId}</div>;
+}
+
+export default Chat;
