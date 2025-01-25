@@ -10,6 +10,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AddChat from "./AddChat";
 import Search from "./Search";
+import { HiDotsVertical } from "react-icons/hi";
 
 interface SidebarProps {
   syncState: boolean;
@@ -40,9 +41,9 @@ function Sidebar({
           <div className="flex items-center justify-center h-16">
             <Logo />
           </div>
-
           <Separator />
-          <div className="flex flex-row p-2">
+          <div className="flex flex-row p-2 items-center">
+            <HiDotsVertical size={30} />
             <Avatar className="border-2 border-black">
               <AvatarImage
                 src={`${

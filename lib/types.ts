@@ -22,6 +22,7 @@ export interface Message {
   imageRef?: string;
   text?: string;
   sendAt: Timestamp;
+  sender:string;
 }
 
 export interface FirebaseUser {
