@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatMetadataPrivate, Message, UserData } from "@/lib/types";
+import { ChatData, Message } from "@/lib/types";
 import React, { useEffect } from "react";
 import ChatMessage from "./ChatMessage";
 import { ScrollArea } from "./ui/scroll-area";
@@ -10,22 +10,25 @@ import { db } from "@/firebase/firebaseConfig";
 import MessageSender from "./MessageSender";
 
 interface ChatProps {
-  chatMetaData: ChatMetadataPrivate | null;
+  chatData: ChatData | null;
   userId: string;
-  personData: UserData | null;
 }
 
-function Chat({ chatMetaData, userId, personData }: ChatProps) {
+function Chat({ chatData, userId }: ChatProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
 
   useEffect(() => {
-    if (chatMetaData) {
+    if (!chatData?.metadata) {
+      return;
+    }
+
+    if (chatData.metadata) {
       // Reference to the 'messages' subcollection of a specific chat
       const messagesRef = collection(
         db,
         "chats",
         "private",
-        chatMetaData.chatId
+        chatData.metadata.chatId
       );
 
       // Optional: Query messages ordered by timestamp (or you can query by other fields)
@@ -47,9 +50,9 @@ function Chat({ chatMetaData, userId, personData }: ChatProps) {
 
       fetchMessages();
     }
-  }, [chatMetaData]);
+  }, [chatData]);
 
-  if (!chatMetaData || !personData) {
+  if (!chatData) {
     return <span>Some error occurred</span>;
   }
 
@@ -60,14 +63,14 @@ function Chat({ chatMetaData, userId, personData }: ChatProps) {
         <Avatar className="border-2 border-black">
           <AvatarImage
             src={`${
-              personData.profilePicture
-                ? personData.profilePicture
+              chatData.personData.data.profilePicture
+                ? chatData.personData.data.profilePicture
                 : "https://github.com/shadcn.png"
             }
                 `}
           />
           <AvatarFallback>
-            {personData.name?.slice(0, 2).toUpperCase()}
+            {chatData.personData.data.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -80,7 +83,7 @@ function Chat({ chatMetaData, userId, personData }: ChatProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <MessageSender senderId={userId} chatId={chatMetaData.chatId} />
+      <MessageSender senderId={userId} chatId={chatData.metadata.chatId} />
     </div>
   );
 }

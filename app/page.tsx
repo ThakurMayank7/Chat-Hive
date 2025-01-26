@@ -6,11 +6,11 @@ import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
-import { ChatData, ChatMetadata, Message, UserData } from "@/lib/types";
+import { ChatData, ChatMetadata, UserData } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import Chat from "@/components/Chat";
-import { getLatestMessage } from "@/actions/actions";
+import { getLatestMessage } from "@/lib/clientFunctions";
 
 export default function Home() {
   const { loading, user } = useAuth();
@@ -172,31 +172,6 @@ export default function Home() {
     }
   }, [user, loading]);
 
-  // useEffect(() => {
-  //   if (chatsMetadata && chatsMetadata.length > 0 && user && !loading) {
-  //     const sync = async () => {
-  //       for (const mData of chatsMetadata) {
-  //         for (const participant of mData.participants) {
-  //           if (
-  //             !participantsDetails.some((p) => p.id === participant) &&
-  //             participant !== user.uid
-  //           ) {
-  //             const snapshot = await getDoc(doc(db, "users", participant));
-  //             if (snapshot.exists()) {
-  //               const data = snapshot.data() as UserData;
-  //               setParticipantsDetails((prev) => [
-  //                 ...prev,
-  //                 { data: data, id: participant },
-  //               ]);
-  //             }
-  //           }
-  //         }
-  //       }
-  //     };
-  //     sync();
-  //   }
-  // }, [chatsMetadata]);
-
   if (!user && !loading) {
     return <Login />;
   }
@@ -228,21 +203,11 @@ export default function Home() {
       <div className="flex items-center justify-center h-full w-full">
         {selectedChat ? (
           <Chat
-            personData={
-              (participantsDetails.find(
-                (p) =>
-                  p.id ===
-                  chatsMetadata
-                    .find((chat) => chat.chatId === selectedChat)
-                    ?.participants.find(
-                      (participant) => participant !== user.uid
-                    )
-              )?.data as UserData) || null
+            chatData={
+              chatData.find((chat) => chat.metadata.chatId === selectedChat) ||
+              null
             }
             userId={user.uid}
-            chatMetaData={
-              chatsMetadata.find((chat) => chat.chatId === selectedChat) || null
-            }
           />
         ) : (
           <span className="text-3xl text-gray-500">

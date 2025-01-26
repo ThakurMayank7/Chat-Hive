@@ -1,3 +1,5 @@
+"use client";
+
 import { ChatData, FirebaseUser } from "@/lib/types";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -61,10 +63,17 @@ function ChatPreview({
 
             <div className="flex justify-between text-xs text-gray-500">
               <span className="truncate max-w-[200px]">
-                {chatData.latestMessage.text}
+                {chatData.latestMessage?.text
+                  ? chatData.latestMessage.text
+                  : "No messages"}
               </span>
               <span>
-                {chatData.latestMessage.sendAt.toDate().toLocaleString()}
+                {chatData.latestMessage?.sendAt
+                  .toDate()
+                  .toLocaleDateString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
               </span>
             </div>
           </div>

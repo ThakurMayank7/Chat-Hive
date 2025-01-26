@@ -1,6 +1,7 @@
 import { Message } from "@/lib/types";
 import Image from "next/image";
 import React from "react";
+import { IoCheckmarkOutline, IoCheckmarkDoneSharp } from "react-icons/io5";
 
 interface ChatMessageProps {
   userId: string;
@@ -17,24 +18,37 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
       >
         {/* Message Container */}
         <div
-          className={`
-            max-w-[75%] px-4 py-2 rounded-lg 
-            ${
-              userId === message.sender
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-black"
-            }
-          `}
+          className={`max-w-[75%] px-4 py-2 rounded-lg ${
+            userId === message.sender
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
           <p className="break-words">{message.text}</p>
 
+          {/* Timestamp and Seen Status */}
           <div
-            className={`
-                text-xs mt-1 
-                ${userId === message.sender ? "text-blue-100" : "text-gray-500"}
-              `}
+            className={`flex items-center gap-2 w-full text-xs mt-1 ${
+              userId === message.sender
+                ? "text-blue-100 text-right"
+                : "text-gray-500 text-left"
+            }`}
           >
-            {message.sendAt.toDate().toLocaleTimeString()}
+            {/* Checkmark Icon */}
+            {message.sender !== userId &&
+              (message.seenBy.find((id) => id === userId) ? (
+                <IoCheckmarkDoneSharp color="black" size={48} />
+              ) : (
+                <IoCheckmarkOutline color="black" />
+              ))}
+
+            {/* Timestamp */}
+            <span className={userId === message.sender ? "ml-auto" : "mr-auto"}>
+              {message.sendAt.toDate().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
         </div>
       </div>
@@ -48,17 +62,15 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
           userId === message.sender ? "justify-end" : "justify-start"
         }`}
       >
-        {/* Container */}
+        {/* Image Container */}
         <div
-          className={`
-              max-w-[75%] px-4 py-2 rounded-lg 
-              ${
-                userId === message.sender
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-black"
-              }
-            `}
+          className={`max-w-[75%] px-4 py-2 rounded-lg ${
+            userId === message.sender
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
+          {/* Message Image */}
           {message.imageRef && (
             <Image
               src={message.imageRef}
@@ -67,17 +79,28 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
             />
           )}
 
+          {/* Timestamp and Seen Status */}
           <div
-            className={`
-                  text-xs mt-1 
-                  ${
-                    userId === message.sender
-                      ? "text-blue-100"
-                      : "text-gray-500"
-                  }
-                `}
+            className={`flex w-full text-xs mt-1 ${
+              userId === message.sender
+                ? "text-blue-100 text-right"
+                : "text-gray-500 text-left"
+            }`}
           >
-            {/* {message.sendAt.toDate().toLocaleTimeString()} */}
+            {/* Checkmark Icon */}
+            {message.seenBy.find((id) => id === userId) ? (
+              <IoCheckmarkDoneSharp color="black" size={48} />
+            ) : (
+              <IoCheckmarkOutline color="black" />
+            )}
+
+            {/* Timestamp */}
+            <span className={userId === message.sender ? "ml-auto" : "mr-auto"}>
+              {message.sendAt.toDate().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
         </div>
       </div>

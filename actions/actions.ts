@@ -123,6 +123,10 @@ export async function addNewPrivateChat({
 
       chatId: chatRef.id,
       participants: uniqueParticipants,
+      unseenMessages: uniqueParticipants.map((participant) => ({
+        userId: participant,
+        unseenMessagesCount: 0,
+      })),
     };
 
     await chatRef.set(chatMetadata);
@@ -207,6 +211,7 @@ export async function sendTextMessage({
         sender: senderId,
         text: messageText,
         sendAt: Timestamp.now(),
+        seenBy: [],
       } as Message);
 
     return true;
@@ -216,32 +221,32 @@ export async function sendTextMessage({
   }
 }
 
-export async function getLatestMessage(
-  chatId: string
-): Promise<Message | null> {
-  try {
-    // Get the Firestore collection reference for the chat messages
-    const messagesCollection = adminDb
-      .collection("chats")
-      .doc("private")
-      .collection(chatId);
+// export async function getLatestMessage(
+//   chatId: string
+// ): Promise<Message | null> {
+//   try {
+//     // Get the Firestore collection reference for the chat messages
+//     const messagesCollection = adminDb
+//       .collection("chats")
+//       .doc("private")
+//       .collection(chatId);
 
-    // Query to fetch the latest message
-    const querySnapshot = await messagesCollection
-      .orderBy("sendAt", "desc")
-      .limit(1)
-      .get();
+//     // Query to fetch the latest message
+//     const querySnapshot = await messagesCollection
+//       .orderBy("sendAt", "desc")
+//       .limit(1)
+//       .get();
 
-    // Return the latest message data if available
-    if (!querySnapshot.empty) {
-      const latestMessage = querySnapshot.docs[0].data() as Message;
-      return latestMessage;
-    }
+//     // Return the latest message data if available
+//     if (!querySnapshot.empty) {
+//       const latestMessage = querySnapshot.docs[0].data() as Message;
+//       return latestMessage;
+//     }
 
-    console.log("No messages found for chatId:", chatId);
-    return null;
-  } catch (error) {
-    console.error("Error retrieving the latest message:", error);
-    throw error;
-  }
-}
+//     console.log("No messages found for chatId:", chatId);
+//     return null;
+//   } catch (error) {
+//     console.error("Error retrieving the latest message:", error);
+//     throw error;
+//   }
+// }
