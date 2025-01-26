@@ -3,7 +3,7 @@
 import Logo from "@/icons/Logo";
 import React, { useState } from "react";
 import { Separator } from "./ui/separator";
-import { ChatMetadataPrivate, FirebaseUser, UserData } from "@/lib/types";
+import { ChatData, FirebaseUser, UserData } from "@/lib/types";
 import { ThreeDotsSpinner } from "./Spinners";
 import ChatPreview from "./ChatPreview";
 import { ScrollArea } from "./ui/scroll-area";
@@ -19,18 +19,16 @@ interface SidebarProps {
   loading: boolean;
   selectChat: (chatId: string) => void;
   selectedChat: string | null;
-  chatsMetadata: ChatMetadataPrivate[];
-  participantsDetails: { data: UserData; id: string }[];
+  chatData: ChatData[];
 }
 
 function Sidebar({
-  participantsDetails,
+  chatData,
   syncState,
   userData,
   user,
   selectChat,
   selectedChat,
-  chatsMetadata,
 }: SidebarProps) {
   const [searchResults, setSearchResults] = useState<string[]>([]);
 
@@ -79,20 +77,11 @@ function Sidebar({
           userData.chats.map((chat: string) => {
             return (
               <ChatPreview
-                participantDetails={
-                  participantsDetails.filter((participant) =>
-                    chatsMetadata
-                      .find((metadata) => metadata.chatId === chat)
-                      ?.participants.includes(participant.id)
-                  )[0]
+                chatData={
+                  chatData.find((data) => data.metadata.chatId === chat) || null
                 }
                 selectedChat={selectedChat}
                 clicked={(chatId) => selectChat(chatId)}
-                metadata={
-                  chatsMetadata.find(
-                    (metadata) => metadata.chatId === chat
-                  ) as ChatMetadataPrivate
-                }
                 user={user}
                 key={chat}
               />
@@ -105,20 +94,12 @@ function Sidebar({
             .map((chat: string) => {
               return (
                 <ChatPreview
-                  participantDetails={
-                    participantsDetails.filter((participant) =>
-                      chatsMetadata
-                        .find((metadata) => metadata.chatId === chat)
-                        ?.participants.includes(participant.id)
-                    )[0]
+                  chatData={
+                    chatData.find((data) => data.metadata.chatId === chat) ||
+                    null
                   }
                   selectedChat={selectedChat}
                   clicked={(chatId) => selectChat(chatId)}
-                  metadata={
-                    chatsMetadata.find(
-                      (metadata) => metadata.chatId === chat
-                    ) as ChatMetadataPrivate
-                  }
                   user={user}
                   key={chat}
                 />

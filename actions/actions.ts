@@ -1,12 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import {
-  ChatMetadataPrivate,
-  FirebaseUser,
-  Message,
-  UserData,
-} from "@/lib/types";
+import { ChatMetadata, FirebaseUser, Message, UserData } from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -123,11 +118,10 @@ export async function addNewPrivateChat({
     const chatRef = adminDb.collection("chatMetaData").doc();
     console.log("Creating chat with ID:", chatRef.id);
 
-    const chatMetadata: ChatMetadataPrivate = {
+    const chatMetadata: ChatMetadata = {
+      createdAt: Timestamp.now(),
+
       chatId: chatRef.id,
-      lastMessage: "",
-      lastMessageAt: Timestamp.now(),
-      unseenMessages: 0,
       participants: uniqueParticipants,
     };
 
@@ -219,5 +213,35 @@ export async function sendTextMessage({
   } catch (e) {
     console.error(e);
     return false;
+  }
+}
+
+export async function getLatestMessage(
+  chatId: string
+): Promise<Message | null> {
+  try {
+    // Get the Firestore collection reference for the chat messages
+    const messagesCollection = adminDb
+      .collection("chats")
+      .doc("private")
+      .collection(chatId);
+
+    // Query to fetch the latest message
+    const querySnapshot = await messagesCollection
+      .orderBy("sendAt", "desc")
+      .limit(1)
+      .get();
+
+    // Return the latest message data if available
+    if (!querySnapshot.empty) {
+      const latestMessage = querySnapshot.docs[0].data() as Message;
+      return latestMessage;
+    }
+
+    console.log("No messages found for chatId:", chatId);
+    return null;
+  } catch (error) {
+    console.error("Error retrieving the latest message:", error);
+    throw error;
   }
 }
