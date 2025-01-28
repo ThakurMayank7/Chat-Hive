@@ -12,9 +12,10 @@ import MessageSender from "./MessageSender";
 interface ChatProps {
   chatData: ChatData | null;
   userId: string;
+  newMessage: Message | null;
 }
 
-function Chat({ chatData, userId }: ChatProps) {
+function Chat({ chatData, userId, newMessage }: ChatProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
 
   useEffect(() => {
@@ -50,7 +51,16 @@ function Chat({ chatData, userId }: ChatProps) {
 
       fetchMessages();
     }
-  }, [chatData]);
+  }, []);
+
+  useEffect(() => {
+    console.log('called');
+    if (newMessage) {
+      console.log("New message received:", newMessage);
+      // Use functional update to ensure the latest state is used
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    }
+  }, [newMessage]);
 
   if (!chatData) {
     return <span>Some error occurred</span>;
@@ -83,7 +93,11 @@ function Chat({ chatData, userId }: ChatProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <MessageSender senderId={userId} chatId={chatData.metadata.chatId} />
+      <MessageSender
+        personId={chatData.personData.userId}
+        senderId={userId}
+        chatId={chatData.metadata.chatId}
+      />
     </div>
   );
 }

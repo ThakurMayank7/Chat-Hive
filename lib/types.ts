@@ -43,3 +43,9 @@ export interface FirebaseUser {
   email: string;
   photoURL: string;
 }
+
+export interface MessageUpdate {
+  update: "new_message";
+  chatId: string;
+  message: Message;
+}

@@ -6,9 +6,15 @@ import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
-import { ChatData, ChatMetadata, UserData } from "@/lib/types";
+import {
+  ChatData,
+  ChatMetadata,
+  Message,
+  MessageUpdate,
+  UserData,
+} from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Chat from "@/components/Chat";
 import { getLatestMessage } from "@/lib/clientFunctions";
 
@@ -21,9 +27,15 @@ export default function Home() {
 
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
 
-  const [initialized, setInitialized] = useState<boolean>(false);
-
   const [chatData, setChatData] = useState<ChatData[]>([]);
+
+  const [newMessage, setNewMessage] = useState<Message | null>(null);
+
+  const selectedChatRef = useRef<string | null>(selectedChat);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
 
   useEffect(() => {
     if (user && !loading) {
@@ -124,53 +136,81 @@ export default function Home() {
         }
       );
 
-      // const syncUnsubscribe = onSnapshot(
-      //   doc(db, "syncRequests", user.uid),
-      //   async (snapshot) => {
-      //     if (snapshot.exists() && initialized) {
-      //       const data = snapshot.data();
+      const syncUnsubscribe = onSnapshot(
+        doc(db, "updateRequests", user.uid),
+        async (snapshot) => {
+          console.log("Snapshot received for user:", user.uid);
 
-      //       const request: string = data.update;
+          if (snapshot.exists()) {
+            console.log("Snapshot exists and is initialized.");
+            const data = snapshot.data();
+            const request: string = data.update;
 
-      //       try {
-      //         const metadataSnapshot = await getDoc(
-      //           doc(db, "chatMetaData", request)
-      //         );
+            if (request === "new_message") {
+              console.log("New message update detected.");
+              console.log("data", data);
 
-      //         if (metadataSnapshot.exists()) {
-      //           const metadata = metadataSnapshot.data() as ChatMetadata;
-      //           setChatsMetadata((prev) => {
-      //             if (prev.some((chat) => chat.chatId === metadata?.chatId)) {
-      //               return prev.map((chat) =>
-      //                 chat.chatId === metadata?.chatId ? metadata : chat
-      //               );
-      //             } else {
-      //               return [...prev, metadata as ChatMetadata];
-      //             }
-      //           });
-      //         }
-      //       } catch (e) {
-      //         console.error(e);
-      //       }
-      //     } else if (!initialized) {
-      //       setInitialized(true);
-      //     } else {
-      //       console.warn("No chatsMetadata found for the user.");
-      //     }
-      //     setSyncing(false);
-      //   },
-      //   (error) => {
-      //     console.error("Error fetching chats metadata:", error);
-      //     setSyncing(false);
-      //   }
-      // );
+              console.log("selectedChat is", selectedChat);
+
+              const messageUpdate: MessageUpdate = data as MessageUpdate;
+              console.log(messageUpdate);
+
+              setChatData((prevData) => {
+                const chatIndex = prevData.findIndex(
+                  (chat) => chat.metadata.chatId === messageUpdate.chatId
+                );
+
+                if (chatIndex === -1) {
+                  console.warn(
+                    `Chat with ID ${messageUpdate.chatId} not found in chatData.`
+                  );
+                  return prevData;
+                }
+
+                const updatedChatData = [...prevData];
+                updatedChatData[chatIndex].latestMessage =
+                  messageUpdate.message;
+
+                return updatedChatData;
+              });
+
+              console.log("selectedChat", selectedChatRef.current);
+              console.log("messageUpdate.chatId", messageUpdate.chatId);
+
+              if (messageUpdate.chatId === selectedChatRef.current) {
+                console.log("New message received for selected chat.");
+                setNewMessage(messageUpdate.message);
+              }
+            } else {
+              console.log(
+                `Update request is not 'new_message', it's: ${request}`
+              );
+            }
+          } else {
+            console.warn("No chatsMetadata found for the user.");
+          }
+          setSyncing(false);
+          console.log("Syncing finished.");
+        },
+        (error) => {
+          console.error("Error fetching chats metadata:", error);
+          setSyncing(false);
+        }
+      );
 
       return () => {
         unsubscribe();
-        // syncUnsubscribe();
+        syncUnsubscribe();
       };
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    if (newMessage) {
+      console.log("New message received:", newMessage);
+      // You can perform any other actions related to newMessage here
+    }
+  }, [newMessage]); // Watch for newMessage state changes
 
   if (!user && !loading) {
     return <Login />;
@@ -203,6 +243,7 @@ export default function Home() {
       <div className="flex items-center justify-center h-full w-full">
         {selectedChat ? (
           <Chat
+            newMessage={newMessage}
             chatData={
               chatData.find((chat) => chat.metadata.chatId === selectedChat) ||
               null

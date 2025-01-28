@@ -196,23 +196,29 @@ export async function sendTextMessage({
   chatId,
   messageText,
   senderId,
+  personId,
 }: {
+  personId: string;
   senderId: string;
   chatId: string;
   messageText: string;
 }): Promise<boolean> {
   try {
+    const message: Message = {
+      type: "text",
+      sender: senderId,
+      text: messageText,
+      sendAt: Timestamp.now(),
+      seenBy: [],
+    };
+
     await adminDb
       .collection("chats")
       .doc("private")
       .collection(chatId)
-      .add({
-        type: "text",
-        sender: senderId,
-        text: messageText,
-        sendAt: Timestamp.now(),
-        seenBy: [],
-      } as Message);
+      .add(message);
+
+    await sendNewMessageUpdateRequest(personId, message, chatId);
 
     return true;
   } catch (e) {
@@ -221,32 +227,18 @@ export async function sendTextMessage({
   }
 }
 
-// export async function getLatestMessage(
-//   chatId: string
-// ): Promise<Message | null> {
-//   try {
-//     // Get the Firestore collection reference for the chat messages
-//     const messagesCollection = adminDb
-//       .collection("chats")
-//       .doc("private")
-//       .collection(chatId);
-
-//     // Query to fetch the latest message
-//     const querySnapshot = await messagesCollection
-//       .orderBy("sendAt", "desc")
-//       .limit(1)
-//       .get();
-
-//     // Return the latest message data if available
-//     if (!querySnapshot.empty) {
-//       const latestMessage = querySnapshot.docs[0].data() as Message;
-//       return latestMessage;
-//     }
-
-//     console.log("No messages found for chatId:", chatId);
-//     return null;
-//   } catch (error) {
-//     console.error("Error retrieving the latest message:", error);
-//     throw error;
-//   }
-// }
+export async function sendNewMessageUpdateRequest(
+  uid: string,
+  message: Message,
+  chatId: string
+) {
+  try {
+    await adminDb.collection("updateRequests").doc(uid).set({
+      update: "new_message",
+      chatId,
+      message,
+    });
+  } catch (error) {
+    console.error("Error sending message update request:", error);
+  }
+}

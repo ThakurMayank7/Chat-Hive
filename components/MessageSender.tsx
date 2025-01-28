@@ -12,9 +12,11 @@ import { IoMdImages } from "react-icons/io";
 function MessageSender({
   chatId,
   senderId,
+  personId,
 }: {
   chatId: string;
   senderId: string;
+  personId: string;
 }) {
   const [messageText, setMessageText] = useState<string>("");
 
@@ -30,10 +32,12 @@ function MessageSender({
         chatId,
         messageText,
         senderId,
+        personId,
       });
 
       if (result) {
         console.log("Message sent successfully");
+
         setMessageText("");
       } else {
         console.log("Message sending failed");
@@ -48,9 +52,14 @@ function MessageSender({
   return (
     <div className="p-4 border-t bg-gray-100 flex items-center gap-2">
       <Popover>
-        <PopoverTrigger><MdAttachFile size={36} className="mx-1 bg-gray-200 rounded-full p-2" /></PopoverTrigger>
+        <PopoverTrigger>
+          <MdAttachFile
+            size={36}
+            className="mx-1 bg-gray-200 rounded-full p-2"
+          />
+        </PopoverTrigger>
         <PopoverContent className="w-auto h-auto p-2">
-        <IoMdImages className="hover:cursor-pointer" size={100} />
+          <IoMdImages className="hover:cursor-pointer" size={100} />
         </PopoverContent>
       </Popover>
       <input
