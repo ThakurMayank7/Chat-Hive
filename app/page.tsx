@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   ChatData,
   ChatMetadata,
-  Message,
   MessageUpdate,
   StoredMessage,
   UserData,
