@@ -33,6 +33,38 @@ export default function Home() {
 
   const selectedChatRef = useRef<string | null>(selectedChat);
 
+  const [sentMessage, setSentMessage] = useState<StoredMessage | null>(null);
+
+  const chatDataRef = useRef<ChatData[]>(chatData);
+
+  useEffect(() => {
+    chatDataRef.current = chatData;
+  }, [chatData]);
+
+  useEffect(() => {
+    if (!sentMessage || !selectedChatRef.current) {
+      return;
+    }
+
+    setChatData((prevData) => {
+      const chatIndex = prevData.findIndex(
+        (chat) => chat.metadata.chatId === selectedChatRef.current
+      );
+
+      if (chatIndex === -1) {
+        console.warn(
+          `Chat with ID ${selectedChatRef.current} not found in chatData.`
+        );
+        return prevData;
+      }
+
+      const updatedChatData = [...prevData];
+      updatedChatData[chatIndex].latestMessage = sentMessage.message;
+
+      return updatedChatData;
+    });
+  }, [sentMessage]);
+
   useEffect(() => {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
@@ -59,7 +91,11 @@ export default function Home() {
             // Parallelize fetching chat data
             const chatPromises = userDataSynced.chats.map(async (chatId) => {
               // Skip if chat data for this chatId already exists
-              if (chatData.some((chat) => chat.metadata.chatId === chatId)) {
+              if (
+                chatDataRef.current.some(
+                  (chat) => chat.metadata.chatId === chatId
+                )
+              ) {
                 return null; // Skip this chat
               }
 
@@ -90,7 +126,7 @@ export default function Home() {
               }
 
               // Check if personData is already in chatData
-              const existingPersonData = chatData.find(
+              const existingPersonData = chatDataRef.current.find(
                 (chat) => chat.personData.userId === personId
               )?.personData.data;
 
@@ -149,8 +185,6 @@ export default function Home() {
             if (request === "new_message") {
               console.log("New message update detected.");
               console.log("data", data);
-
-              console.log("selectedChat is", selectedChat);
 
               const messageUpdate: MessageUpdate = data as MessageUpdate;
               console.log(messageUpdate);
@@ -243,6 +277,7 @@ export default function Home() {
       <div className="flex items-center justify-center h-full w-full">
         {selectedChat ? (
           <Chat
+            sentMessageUpdate={(sent) => setSentMessage(sent)}
             newMessage={newMessage}
             chatData={
               chatData.find((chat) => chat.metadata.chatId === selectedChat) ||

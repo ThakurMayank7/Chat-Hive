@@ -1,4 +1,5 @@
 import { Message } from "@/lib/types";
+import { Timestamp } from "firebase/firestore";
 import Image from "next/image";
 import React from "react";
 import { IoCheckmarkOutline, IoCheckmarkDoneSharp } from "react-icons/io5";
@@ -44,10 +45,15 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
 
             {/* Timestamp */}
             <span className={userId === message.sender ? "ml-auto" : "mr-auto"}>
-              {message.sendAt.toDate().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {message.sendAt instanceof Timestamp
+                ? message.sendAt.toDate().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
             </span>
           </div>
         </div>
@@ -96,10 +102,13 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
 
             {/* Timestamp */}
             <span className={userId === message.sender ? "ml-auto" : "mr-auto"}>
-              {message.sendAt.toDate().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {message.sendAt && message.sendAt instanceof Timestamp
+                ? message.sendAt.toDate().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "N/A"}{" "}
+              {/* Fallback to "N/A" if sendAt is missing or not a valid Timestamp */}
             </span>
           </div>
         </div>

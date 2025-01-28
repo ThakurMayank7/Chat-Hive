@@ -1,6 +1,6 @@
 "use client";
 
-import { createUser} from "@/actions/actions";
+import { createUser } from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";

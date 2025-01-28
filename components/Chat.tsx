@@ -20,9 +20,10 @@ interface ChatProps {
   chatData: ChatData | null;
   userId: string;
   newMessage: StoredMessage | null;
+  sentMessageUpdate: (messageSent: StoredMessage) => void;
 }
 
-function Chat({ chatData, userId, newMessage }: ChatProps) {
+function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
   const MESSAGES_PER_PAGE: number = 25;
   const SCROLL_THRESHOLD: number = 100;
 
@@ -37,10 +38,30 @@ function Chat({ chatData, userId, newMessage }: ChatProps) {
   const lastMessageRef = useRef<unknown>(null);
   const [prevScrollHeight, setPrevScrollHeight] = useState<number>(0);
 
-  // Add a debounce timeout ref
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // Add a ref to track if we're currently fetching
   const isFetchingRef = useRef<boolean>(false);
+
+  const [sentMessage, setSentMessage] = useState<StoredMessage | null>(null);
+
+  const sentMessageUpdateRef = useRef(sentMessageUpdate);
+
+  useEffect(() => {
+    sentMessageUpdateRef.current = sentMessageUpdate;
+  }, [sentMessageUpdate]);
+
+  useEffect(() => {
+    if (sentMessage) {
+      setMessages((prevMessages) => {
+        const messageExists = prevMessages.some(
+          (msg) => msg.messageId === sentMessage.messageId
+        );
+        if (messageExists) return prevMessages;
+        return [...prevMessages, sentMessage];
+      });
+      sentMessageUpdateRef.current(sentMessage);
+      setScrollDown(true);
+    }
+  }, [sentMessage]);
 
   useEffect(() => {
     initialLoadingRef.current = initialLoading;
@@ -232,6 +253,7 @@ function Chat({ chatData, userId, newMessage }: ChatProps) {
       </div>
 
       <MessageSender
+        newMessage={(messageSent: StoredMessage) => setSentMessage(messageSent)}
         personId={chatData.personData.userId}
         senderId={userId}
         chatId={chatData.metadata.chatId}

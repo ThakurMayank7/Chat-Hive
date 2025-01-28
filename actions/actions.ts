@@ -208,35 +208,46 @@ export async function sendTextMessage({
   senderId: string;
   chatId: string;
   messageText: string;
-}): Promise<boolean> {
+}): Promise<{ success: boolean; storedMessage?: StoredMessage }> {
   try {
+    // Create the message object
     const message: Message = {
       type: "text",
       sender: senderId,
       text: messageText,
       sendAt: Timestamp.now(),
-      seenBy: [],
+      seenBy: [], // Adjust as necessary
     };
 
+    // Add the message to Firestore and get the document reference
     const messageRef = await adminDb
       .collection("chats")
       .doc("private")
       .collection(chatId)
       .add(message);
 
-    await sendNewMessageUpdateRequest(
-      personId,
-      {
-        messageId: messageRef.id,
-        message,
-      } as StoredMessage,
-      chatId
-    );
+    // Create the StoredMessage object with Firestore document ID
+    const storedMessage: StoredMessage = {
+      message: {
+        ...message,
+        sendAt:
+          message.sendAt instanceof Timestamp
+            ? message.sendAt.toDate()
+            : new Date(),
+      }, // Spread the original message fields
+      messageId: messageRef.id, // Add the document ID
+    };
 
-    return true;
+    // Send the stored message update request
+    await sendNewMessageUpdateRequest(personId, storedMessage, chatId);
+
+    // Return success status and the stored message
+    return { success: true, storedMessage };
   } catch (e) {
-    console.error(e);
-    return false;
+    console.error("Error sending message:", e);
+
+    // Return failure status with no stored message
+    return { success: false };
   }
 }
 

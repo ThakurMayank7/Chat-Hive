@@ -32,7 +32,7 @@ export interface Message {
   type: "image" | "text";
   imageRef?: string;
   text?: string;
-  sendAt: Timestamp;
+  sendAt: Timestamp | Date;
   sender: string;
   seenBy: string[];
 }

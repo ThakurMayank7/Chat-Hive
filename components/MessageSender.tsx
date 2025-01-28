@@ -8,15 +8,20 @@ import {
 } from "@/components/ui/popover";
 import { MdAttachFile } from "react-icons/md";
 import { IoMdImages } from "react-icons/io";
+import { StoredMessage } from "@/lib/types";
 
 function MessageSender({
   chatId,
   senderId,
   personId,
+
+  newMessage,
 }: {
   chatId: string;
   senderId: string;
   personId: string;
+
+  newMessage: (messageSent: StoredMessage) => void;
 }) {
   const [messageText, setMessageText] = useState<string>("");
 
@@ -35,12 +40,16 @@ function MessageSender({
         personId,
       });
 
-      if (result) {
-        console.log("Message sent successfully");
-
+      if (result.success) {
+        // Handle success, and you can access the storedMessage
+        console.log("Message sent:", result.storedMessage);
+        if (result.storedMessage) {
+          newMessage(result.storedMessage);
+        }
         setMessageText("");
       } else {
-        console.log("Message sending failed");
+        // Handle failure
+        console.log("Failed to send message");
       }
     } catch (error) {
       console.error("Error while sending message:", error);

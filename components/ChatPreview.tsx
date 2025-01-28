@@ -5,6 +5,7 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BsThreeDots } from "react-icons/bs";
 import { ThreeDotsSpinner } from "./Spinners";
+import { Timestamp } from "firebase/firestore";
 
 function ChatPreview({
   chatData,
@@ -64,16 +65,23 @@ function ChatPreview({
             <div className="flex justify-between text-xs text-gray-500">
               <span className="truncate max-w-[200px]">
                 {chatData.latestMessage?.text
-                  ? chatData.latestMessage.text
+                  ? (chatData.latestMessage.sender === user.uid
+                      ? "You : "
+                      : "") + chatData.latestMessage.text
                   : "No messages"}
               </span>
               <span>
-                {chatData.latestMessage?.sendAt
-                  .toDate()
-                  .toLocaleDateString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                {chatData.latestMessage?.sendAt instanceof Timestamp
+                  ? chatData.latestMessage.sendAt
+                      .toDate()
+                      .toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                  : new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
               </span>
             </div>
           </div>
