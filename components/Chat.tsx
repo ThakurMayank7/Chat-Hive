@@ -1,66 +1,95 @@
 "use client";
 
-import { ChatData, Message } from "@/lib/types";
-import React, { useEffect } from "react";
+import { ChatData, StoredMessage } from "@/lib/types";
+import React, { useEffect, useRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
-import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase/firebaseConfig";
 import MessageSender from "./MessageSender";
+import { LoadingSpinner } from "./Spinners";
 
 interface ChatProps {
   chatData: ChatData | null;
   userId: string;
-  newMessage: Message | null;
+  newMessage: StoredMessage | null;
 }
 
 function Chat({ chatData, userId, newMessage }: ChatProps) {
-  const [messages, setMessages] = React.useState<Message[]>([]);
+  const MAX_STORED_MESSAGES: number = 10000;
+
+  const MAX_MESSAGES: number = 100;
+
+  const [storedMessages, setStoredMessages] = useState<StoredMessage[]>([]);
+
+  const [messages, setMessages] = useState<StoredMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+
+  const initialLoadingRef = useRef<boolean>(initialLoading);
+
+  const [scrollDown, setScrollDown] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!chatData?.metadata) {
+    initialLoadingRef.current = initialLoading;
+  }, [initialLoading]);
+
+  useEffect(() => {
+    console.log("called");
+    if (newMessage) {
+      console.log("New message received:", newMessage);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setScrollDown(true);
+    }
+  }, [newMessage]);
+
+  useEffect(() => {
+    if (!chatData || !initialLoadingRef.current) {
       return;
     }
 
-    if (chatData.metadata) {
-      // Reference to the 'messages' subcollection of a specific chat
-      const messagesRef = collection(
-        db,
-        "chats",
-        "private",
-        chatData.metadata.chatId
-      );
+    const fetchInitialMessages = async () => {
+      try {
+        const initialMessageQuery = query(
+          collection(db, "chats", "private", chatData.metadata.chatId),
+          orderBy("sendAt", "desc"),
+          limit(MAX_MESSAGES)
+        );
 
-      // Optional: Query messages ordered by timestamp (or you can query by other fields)
-      const q = query(messagesRef, orderBy("sendAt", "asc")); // Or use any custom query here
+        const initialMessagesSnapshot = await getDocs(initialMessageQuery);
 
-      // Get the documents
-      const fetchMessages = async () => {
-        const snapshot = await getDocs(q);
+        if (!initialMessagesSnapshot.empty) {
+          const fetchedMessages = initialMessagesSnapshot.docs.map((doc) => ({
+            message: {
+              ...doc.data(),
+            },
+            messageId: doc.id,
+          })) as StoredMessage[];
 
-        if (!snapshot.empty) {
-          const messagesData: Message[] = snapshot.docs.map(
-            (doc) => doc.data() as Message
-          );
-          setMessages(messagesData); // Set the retrieved messages
-        } else {
-          console.log("No messages found.");
+          console.log(fetchedMessages);
+          setMessages(fetchedMessages.reverse());
+          setStoredMessages(fetchedMessages.reverse());
         }
-      };
+      } catch (error) {
+        console.error("Error fetching initial messages:", error);
+      } finally {
+        setInitialLoading(false);
+        setScrollDown(true);
+      }
+    };
 
-      fetchMessages();
-    }
-  }, []);
+    fetchInitialMessages();
+  }, [chatData, setMessages, setInitialLoading]);
 
   useEffect(() => {
-    console.log('called');
-    if (newMessage) {
-      console.log("New message received:", newMessage);
-      // Use functional update to ensure the latest state is used
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    if (scrollDown && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      setScrollDown(false);
     }
-  }, [newMessage]);
+  }, [scrollDown]);
 
   if (!chatData) {
     return <span>Some error occurred</span>;
@@ -84,13 +113,17 @@ function Chat({ chatData, userId, newMessage }: ChatProps) {
           </AvatarFallback>
         </Avatar>
       </div>
+      {initialLoading && <LoadingSpinner />}
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4 overflow-y-auto">
+      <div
+        className="flex-1 p-4 overflow-y-auto"
+        ref={scrollRef}
+        style={{ scrollBehavior: "smooth" }}
+      >
         {messages.map((msg, index) => (
-          <ChatMessage key={index} userId={userId} message={msg} />
+          <ChatMessage key={index} userId={userId} message={msg.message} />
         ))}
-      </ScrollArea>
+      </div>
 
       {/* Input Area */}
       <MessageSender

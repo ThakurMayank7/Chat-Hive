@@ -47,5 +47,10 @@ export interface FirebaseUser {
 export interface MessageUpdate {
   update: "new_message";
   chatId: string;
+  message: StoredMessage;
+}
+
+export interface StoredMessage {
+  messageId: string;
   message: Message;
 }

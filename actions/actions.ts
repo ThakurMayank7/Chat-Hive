@@ -1,7 +1,13 @@
 "use server";
 
 import { adminDb } from "@/firebase/admin";
-import { ChatMetadata, FirebaseUser, Message, UserData } from "@/lib/types";
+import {
+  ChatMetadata,
+  FirebaseUser,
+  Message,
+  StoredMessage,
+  UserData,
+} from "@/lib/types";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
@@ -212,13 +218,20 @@ export async function sendTextMessage({
       seenBy: [],
     };
 
-    await adminDb
+    const messageRef = await adminDb
       .collection("chats")
       .doc("private")
       .collection(chatId)
       .add(message);
 
-    await sendNewMessageUpdateRequest(personId, message, chatId);
+    await sendNewMessageUpdateRequest(
+      personId,
+      {
+        messageId: messageRef.id,
+        message,
+      } as StoredMessage,
+      chatId
+    );
 
     return true;
   } catch (e) {
@@ -229,7 +242,7 @@ export async function sendTextMessage({
 
 export async function sendNewMessageUpdateRequest(
   uid: string,
-  message: Message,
+  message: StoredMessage,
   chatId: string
 ) {
   try {

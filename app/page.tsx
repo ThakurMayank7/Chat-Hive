@@ -11,6 +11,7 @@ import {
   ChatMetadata,
   Message,
   MessageUpdate,
+  StoredMessage,
   UserData,
 } from "@/lib/types";
 import { onSnapshot } from "firebase/firestore";
@@ -29,7 +30,7 @@ export default function Home() {
 
   const [chatData, setChatData] = useState<ChatData[]>([]);
 
-  const [newMessage, setNewMessage] = useState<Message | null>(null);
+  const [newMessage, setNewMessage] = useState<StoredMessage | null>(null);
 
   const selectedChatRef = useRef<string | null>(selectedChat);
 
@@ -169,7 +170,7 @@ export default function Home() {
 
                 const updatedChatData = [...prevData];
                 updatedChatData[chatIndex].latestMessage =
-                  messageUpdate.message;
+                  messageUpdate.message.message;
 
                 return updatedChatData;
               });
