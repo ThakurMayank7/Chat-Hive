@@ -137,10 +137,14 @@ export async function addNewPrivateChat({
 
     await chatRef.set(chatMetadata);
 
+    const users: string[] = uniqueParticipants.map(
+      (participant) => participant
+    );
     await adminDb
       .collection("searchKeys")
       .doc(chatRef.id)
       .set({
+        users: users,
         keys: Array.from(new Set(searchKeys)),
       });
 
@@ -183,20 +187,6 @@ function generateSearchKeys(parameter: string | undefined | null): string[] {
 
 // Result for "John":
 // ["j", "jo", "joh", "john", "o", "oh", "ohn", "h", "hn", "n"]
-
-export async function searchQuery(query: string): Promise<string[]> {
-  try {
-    const querySnapshot = await adminDb
-      .collection("searchKeys")
-      .where("keys", "array-contains", query.toLowerCase().split(" ").join(""))
-      .get();
-
-    return querySnapshot.docs.map((doc) => doc.id);
-  } catch (error) {
-    console.error("Search query error:", error);
-    return [];
-  }
-}
 
 export async function sendTextMessage({
   chatId,

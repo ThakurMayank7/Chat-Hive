@@ -52,9 +52,9 @@ export default function Home() {
       );
 
       if (chatIndex === -1) {
-        console.warn(
-          `Chat with ID ${selectedChatRef.current} not found in chatData.`
-        );
+        // console.warn(
+        //   `Chat with ID ${selectedChatRef.current} not found in chatData.`
+        // );
         return prevData;
       }
 
@@ -78,7 +78,7 @@ export default function Home() {
         async (snapshot) => {
           try {
             if (!snapshot.exists()) {
-              console.warn("No userData found for the user.");
+              // console.warn("No userData found for the user.");
               setSyncing(false);
               return;
             }
@@ -86,7 +86,7 @@ export default function Home() {
             const userDataSynced: UserData = snapshot.data() as UserData;
             setUserData(userDataSynced);
 
-            console.log("Fetching information for chats", userDataSynced.chats);
+            // console.log("Fetching information for chats", userDataSynced.chats);
 
             // Parallelize fetching chat data
             const chatPromises = userDataSynced.chats.map(async (chatId) => {
@@ -104,7 +104,7 @@ export default function Home() {
                 doc(db, "chatMetaData", chatId)
               );
               if (!metadataSnapshot.exists()) {
-                console.warn(`No metadata found for chatId: ${chatId}`);
+                // console.warn(`No metadata found for chatId: ${chatId}`);
                 return null;
               }
 
@@ -121,7 +121,7 @@ export default function Home() {
                 ) || null;
 
               if (!personId) {
-                console.warn(`No participant found for chatId: ${chatId}`);
+                // console.warn(`No participant found for chatId: ${chatId}`);
                 return null;
               }
 
@@ -138,7 +138,7 @@ export default function Home() {
                 ).data() as UserData | null);
 
               if (!personData) {
-                console.warn(`No userData found for personId: ${personId}`);
+                // console.warn(`No userData found for personId: ${personId}`);
                 return null;
               }
 
@@ -175,19 +175,19 @@ export default function Home() {
       const syncUnsubscribe = onSnapshot(
         doc(db, "updateRequests", user.uid),
         async (snapshot) => {
-          console.log("Snapshot received for user:", user.uid);
+          // console.log("Snapshot received for user:", user.uid);
 
           if (snapshot.exists()) {
-            console.log("Snapshot exists and is initialized.");
+            // console.log("Snapshot exists and is initialized.");
             const data = snapshot.data();
             const request: string = data.update;
 
             if (request === "new_message") {
-              console.log("New message update detected.");
-              console.log("data", data);
+              // console.log("New message update detected.");
+              // console.log("data", data);
 
               const messageUpdate: MessageUpdate = data as MessageUpdate;
-              console.log(messageUpdate);
+              // console.log(messageUpdate);
 
               setChatData((prevData) => {
                 const chatIndex = prevData.findIndex(
@@ -195,9 +195,9 @@ export default function Home() {
                 );
 
                 if (chatIndex === -1) {
-                  console.warn(
-                    `Chat with ID ${messageUpdate.chatId} not found in chatData.`
-                  );
+                  // console.warn(
+                  //   `Chat with ID ${messageUpdate.chatId} not found in chatData.`
+                  // );
                   return prevData;
                 }
 
@@ -208,23 +208,23 @@ export default function Home() {
                 return updatedChatData;
               });
 
-              console.log("selectedChat", selectedChatRef.current);
-              console.log("messageUpdate.chatId", messageUpdate.chatId);
+              // console.log("selectedChat", selectedChatRef.current);
+              // console.log("messageUpdate.chatId", messageUpdate.chatId);
 
               if (messageUpdate.chatId === selectedChatRef.current) {
-                console.log("New message received for selected chat.");
+                // console.log("New message received for selected chat.");
                 setNewMessage(messageUpdate.message);
               }
             } else {
-              console.log(
-                `Update request is not 'new_message', it's: ${request}`
-              );
+              // console.log(
+              //   `Update request is not 'new_message', it's: ${request}`
+              // );
             }
           } else {
             console.warn("No chatsMetadata found for the user.");
           }
           setSyncing(false);
-          console.log("Syncing finished.");
+          // console.log("Syncing finished.");
         },
         (error) => {
           console.error("Error fetching chats metadata:", error);
@@ -238,13 +238,6 @@ export default function Home() {
       };
     }
   }, [user, loading]);
-
-  useEffect(() => {
-    if (newMessage) {
-      console.log("New message received:", newMessage);
-      // You can perform any other actions related to newMessage here
-    }
-  }, [newMessage]); // Watch for newMessage state changes
 
   if (!user && !loading) {
     return <Login />;
@@ -263,7 +256,7 @@ export default function Home() {
       <Sidebar
         chatData={chatData}
         selectedChat={selectedChat}
-        selectChat={(chatId) => setSelectedChat(chatId)}
+        selectChat={(chatId:string|null) => setSelectedChat(chatId)}
         syncState={syncing}
         userData={userData || null}
         user={{

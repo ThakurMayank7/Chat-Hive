@@ -42,7 +42,7 @@ function MessageSender({
 
       if (result.success) {
         // Handle success, and you can access the storedMessage
-        console.log("Message sent:", result.storedMessage);
+        // console.log("Message sent:", result.storedMessage);
         if (result.storedMessage) {
           newMessage(result.storedMessage);
         }

@@ -17,7 +17,7 @@ interface SidebarProps {
   userData: UserData | null;
   user: FirebaseUser;
   loading: boolean;
-  selectChat: (chatId: string) => void;
+  selectChat: (chatId: string | null) => void;
   selectedChat: string | null;
   chatData: ChatData[];
 }
@@ -31,12 +31,16 @@ function Sidebar({
   selectedChat,
 }: SidebarProps) {
   const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [searching, setSearching] = useState<boolean>(false);
 
   return (
     <div className="w-80 flex flex-col border-r-2">
       <ScrollArea className="h-full w-full">
         <div className="sticky top-0 z-10 flex flex-col py-2">
-          <div className="flex items-center justify-center h-16">
+          <div
+            className="flex items-center justify-center h-16 hover:cursor-pointer"
+            onClick={() => selectChat(null)}
+          >
             <Logo />
           </div>
           <Separator />
@@ -64,6 +68,9 @@ function Sidebar({
           </div>
           <Separator />
           <Search
+            chatData={chatData}
+            userId={user.uid}
+            setSearching={(searching: boolean) => setSearching(searching)}
             setSearchResults={(queryResults: string[]) =>
               setSearchResults(queryResults)
             }
@@ -73,7 +80,7 @@ function Sidebar({
 
         {!syncState &&
           userData &&
-          searchResults.length === 0 &&
+          !searching &&
           userData.chats.map((chat: string) => {
             return (
               <ChatPreview
@@ -89,6 +96,7 @@ function Sidebar({
           })}
         {searchResults &&
           searchResults.length > 0 &&
+          searching &&
           searchResults
             .filter((result) => userData?.chats.includes(result))
             .map((chat: string) => {
@@ -105,6 +113,9 @@ function Sidebar({
                 />
               );
             })}
+        {searching && searchResults.length === 0 && (
+          <p>No Search Results Found</p>
+        )}
       </ScrollArea>
     </div>
   );

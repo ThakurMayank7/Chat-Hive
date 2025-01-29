@@ -1,27 +1,69 @@
 "use client";
 
-import { searchQuery } from "@/actions/actions";
-import React, { useState } from "react";
+import { ChatData } from "@/lib/types";
+import React, { useEffect, useRef, useState } from "react";
 import { MdOutlinePersonSearch } from "react-icons/md";
 
 function Search({
   setSearchResults,
+  setSearching,
+  chatData,
 }: {
   setSearchResults: (results: string[]) => void;
+  setSearching: (searching: boolean) => void;
+  userId: string;
+  chatData: ChatData[];
 }) {
   const [query, setQuery] = useState<string>("");
+  const setSearchingRef = useRef(setSearching);
+  useEffect(() => {
+    setSearchingRef.current = setSearching;
+  }, [setSearching]);
+  useEffect(() => {
+    if (query.length > 0) {
+      setSearchingRef.current(true);
+    } else {
+      setSearchingRef.current(false);
+    }
+  }, [query]);
 
   const handleQueryChanges = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
-    setQuery(newQuery);
+    setQuery(newQuery); // Update state
     if (newQuery && newQuery.length > 0) {
-      await searchQuery(newQuery)
-        .then((results: string[]) => {
-          setSearchResults(results);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+      try {
+        const modifiedQuery = newQuery.toLowerCase().split(" ").join("");
+        const results: string[] = [];
+
+        for (const chatDataIterated of chatData) {
+          if (
+            chatDataIterated.personData.data.name
+              .toLowerCase()
+              .split(" ")
+              .join("")
+              .includes(modifiedQuery) ||
+            chatDataIterated.personData.data.email
+              .toLowerCase()
+              .split(" ")
+              .join("")
+              .includes(modifiedQuery) ||
+            chatDataIterated.personData.userId
+              .toLowerCase()
+              .split(" ")
+              .join("")
+              .includes(modifiedQuery)
+          ) {
+            results.push(chatDataIterated.metadata.chatId);
+          }
+        }
+
+        console.log(results);
+        setSearchResults(results);
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      setSearchResults([]);
     }
   };
 
