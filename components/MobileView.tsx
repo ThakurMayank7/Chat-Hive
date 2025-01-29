@@ -90,7 +90,7 @@ function MobileView({
             )}
             <Separator />
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 z-10">
             {syncState && <ThreeDotsSpinner />}
 
             {!syncState &&
@@ -134,13 +134,13 @@ function MobileView({
               <p>No Search Results Found</p>
             )}
           </ScrollArea>
+          <div className="absolute flex h-screen w-screen">
+            <div className="mt-auto ml-auto mb-16 mr-6 z-20 h-fit w-fit">
+              <AddChat uid={user.uid} chatData={chatData} userData={userData} />
+            </div>
+          </div>
         </>
       )}
-      <div className="absolute flex h-screen w-screen">
-        <div className="mt-auto ml-auto mb-16 mr-6">
-          <AddChat uid={user.uid} chatData={chatData} userData={userData} />
-        </div>
-      </div>
     </div>
   );
 }
