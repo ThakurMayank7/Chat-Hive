@@ -15,6 +15,7 @@ import {
 import { db } from "@/firebase/firebaseConfig";
 import MessageSender from "./MessageSender";
 import { LoadingSpinner } from "./Spinners";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 interface ChatProps {
   chatData: ChatData | null;
@@ -216,8 +217,8 @@ function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
 
   return (
     <div className="flex flex-col h-full w-full bg-white border rounded-md">
-      <div className="p-4 border-b bg-gray-100">
-        <Avatar className="border-2 border-black">
+      <div className="p-4 border-b bg-gray-100 flex flex-row items-center">
+        <Avatar className="border-2 border-black w-16 h-16 ml-4">
           <AvatarImage
             src={
               chatData.personData.data.profilePicture ||
@@ -228,6 +229,10 @@ function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
             {chatData.personData.data.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
+        <span className="text-5xl font-serif ml-8">
+          {chatData.personData.data.name}
+        </span>
+        <BsThreeDotsVertical size={40} className="ml-auto" />
       </div>
 
       {initialLoading && <LoadingSpinner />}

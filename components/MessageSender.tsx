@@ -69,6 +69,7 @@ function MessageSender({
         </PopoverTrigger>
         <PopoverContent className="w-auto h-auto p-2">
           <IoMdImages className="hover:cursor-pointer" size={100} />
+          <p>This feature is not available right now</p>
         </PopoverContent>
       </Popover>
       <input
