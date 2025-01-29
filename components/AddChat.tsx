@@ -119,8 +119,7 @@ function AddChat({
     >
       <DialogTrigger asChild onClick={() => setOpen(true)}>
         <AiOutlinePlusCircle
-          className="hover:cursor-pointer"
-          size={42}
+          className="hover:cursor-pointer h-16 w-16 sm:h-12 sm:w-12"
           color="teal"
         />
       </DialogTrigger>

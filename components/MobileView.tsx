@@ -137,7 +137,7 @@ function MobileView({
         </>
       )}
       <div className="absolute flex h-screen w-screen">
-        <div className="mt-auto mr-auto">
+        <div className="mt-auto mr-auto mb-6 ml-6">
           <AddChat uid={user.uid} chatData={chatData} userData={userData} />
         </div>
       </div>
