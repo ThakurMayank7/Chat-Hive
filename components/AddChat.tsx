@@ -15,8 +15,17 @@ import { addNewPrivateChat, checkExistingUser } from "@/actions/actions";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { AlertCircle } from "lucide-react";
+import { ChatData, UserData } from "@/lib/types";
 
-function AddChat({ uid }: { uid: string }) {
+function AddChat({
+  uid,
+  chatData,
+  userData,
+}: {
+  uid: string;
+  chatData: ChatData[];
+  userData: UserData | null;
+}) {
   const [open, setOpen] = useState<boolean>(false);
 
   const [adding, setAdding] = useState<boolean>(false);
@@ -25,15 +34,50 @@ function AddChat({ uid }: { uid: string }) {
 
   const [alert, setAlert] = useState<boolean>(false);
 
-  const handleAddNewChat = async () => {
-    if (!field) return;
+  const [alertMessage, setAlertMessage] = useState<string>("");
 
+  const handleAddNewChat = async () => {
+    if (!field) {
+      setAlertMessage("Enter Something First!");
+      setAlert(true);
+      return;
+    }
+
+    if (!userData) {
+      setAlertMessage(
+        "Please Try Again!\nIf issue persists, reload this Page!"
+      );
+      setAlert(true);
+      return;
+    }
+
+    if (userData.email === field || uid === field) {
+      setAlertMessage(
+        "This is your email or userId!\nKindly Enter a different userId or email!"
+      );
+      setAlert(true);
+      return;
+    }
+
+    //checking if chat with that user already exists
+    if (
+      chatData.filter(
+        (data) =>
+          data.personData.userId === field ||
+          data.personData.data.email === field
+      ).length !== 0
+    ) {
+      setAlertMessage("A Chat with this person already exists!");
+      setAlert(true);
+      return;
+    }
     setAdding(true);
 
     try {
       // Check if the user exists
       const result = await checkExistingUser(field);
       if (result === "not found" || result === "error") {
+        setAlertMessage("This User Does Not Exist");
         setAlert(true);
         toast(
           <span className="text-red-500">
@@ -43,23 +87,21 @@ function AddChat({ uid }: { uid: string }) {
         return;
       }
       console.log(result);
-      if (result !== uid) {
-        // Add a new chat
-        const chatAdded = await addNewPrivateChat({
-          participants: [uid, result],
-          type: "private",
-        });
+      // Add a new chat
+      const chatAdded = await addNewPrivateChat({
+        participants: [uid, result],
+        type: "private",
+      });
 
-        if (chatAdded) {
-          toast(<span className="text-green-500">New Chat Added!</span>);
-          setField("");
-        } else {
-          toast(
-            <span className="text-red-500">
-              Some Error Occurred while adding new Chat!
-            </span>
-          );
-        }
+      if (chatAdded) {
+        toast(<span className="text-green-500">New Chat Added!</span>);
+        setField("");
+      } else {
+        toast(
+          <span className="text-red-500">
+            Some Error Occurred while adding new Chat!
+          </span>
+        );
       }
     } catch (error) {
       console.error("Error while adding new chat:", error);
@@ -105,6 +147,7 @@ function AddChat({ uid }: { uid: string }) {
                 setField(e.target.value);
                 if (alert) {
                   setAlert(false);
+                  setAlertMessage("");
                 }
               }}
               placeholder="Email or User ID"
@@ -113,7 +156,7 @@ function AddChat({ uid }: { uid: string }) {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>This User Does Not Exist</AlertDescription>
+                <AlertDescription>{alertMessage}</AlertDescription>
               </Alert>
             )}
             <button

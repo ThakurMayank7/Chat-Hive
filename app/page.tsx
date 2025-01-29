@@ -256,7 +256,7 @@ export default function Home() {
       <Sidebar
         chatData={chatData}
         selectedChat={selectedChat}
-        selectChat={(chatId:string|null) => setSelectedChat(chatId)}
+        selectChat={(chatId: string | null) => setSelectedChat(chatId)}
         syncState={syncing}
         userData={userData || null}
         user={{
@@ -270,6 +270,7 @@ export default function Home() {
       <div className="flex items-center justify-center h-full w-full">
         {selectedChat ? (
           <Chat
+            selectedChat={selectedChat}
             sentMessageUpdate={(sent) => setSentMessage(sent)}
             newMessage={newMessage}
             chatData={

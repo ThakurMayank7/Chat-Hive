@@ -63,7 +63,7 @@ function Sidebar({
               <span className="text-md font-serif">{user.displayName}</span>
             </div>
             <div className="ml-auto">
-              <AddChat uid={user.uid} />
+              <AddChat uid={user.uid} chatData={chatData} userData={userData} />
             </div>
           </div>
           <Separator />

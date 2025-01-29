@@ -22,9 +22,16 @@ interface ChatProps {
   userId: string;
   newMessage: StoredMessage | null;
   sentMessageUpdate: (messageSent: StoredMessage) => void;
+  selectedChat: string;
 }
 
-function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
+function Chat({
+  chatData,
+  userId,
+  newMessage,
+  sentMessageUpdate,
+  selectedChat,
+}: ChatProps) {
   const MESSAGES_PER_PAGE: number = 25;
   const SCROLL_THRESHOLD: number = 100;
 
@@ -44,7 +51,53 @@ function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
 
   const [sentMessage, setSentMessage] = useState<StoredMessage | null>(null);
 
+  const selectedChatRef = useRef<string>(selectedChat);
+
   const sentMessageUpdateRef = useRef(sentMessageUpdate);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+    if (initialLoadingRef.current) {
+      return;
+    }
+    setInitialLoading(true);
+    setMessages([]);
+
+    const fetchInitialMessages = async () => {
+      try {
+        setLoading(true);
+
+        const initialMessageQuery = query(
+          collection(db, "chats", "private", selectedChatRef.current),
+          orderBy("sendAt", "desc"),
+          limit(MESSAGES_PER_PAGE)
+        );
+
+        const initialMessagesSnapshot = await getDocs(initialMessageQuery);
+
+        if (!initialMessagesSnapshot.empty) {
+          const fetchedMessages = initialMessagesSnapshot.docs.map((doc) => ({
+            message: { ...doc.data() },
+            messageId: doc.id,
+          })) as StoredMessage[];
+
+          setMessages(fetchedMessages.reverse());
+          lastMessageRef.current = initialMessagesSnapshot.docs[0];
+          setHasMore(initialMessagesSnapshot.docs.length === MESSAGES_PER_PAGE);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Error fetching initial messages:", error);
+      } finally {
+        setLoading(false);
+        setInitialLoading(false);
+        setScrollDown(true);
+      }
+    };
+
+    fetchInitialMessages();
+  }, [selectedChat]);
 
   useEffect(() => {
     sentMessageUpdateRef.current = sentMessageUpdate;
@@ -83,13 +136,13 @@ function Chat({ chatData, userId, newMessage, sentMessageUpdate }: ChatProps) {
 
   useEffect(() => {
     if (!chatData || !initialLoadingRef.current) return;
-
+    // console.log("fetching", selectedChat);
     const fetchInitialMessages = async () => {
       try {
         setLoading(true);
 
         const initialMessageQuery = query(
-          collection(db, "chats", "private", chatData.metadata.chatId),
+          collection(db, "chats", "private", selectedChatRef.current),
           orderBy("sendAt", "desc"),
           limit(MESSAGES_PER_PAGE)
         );

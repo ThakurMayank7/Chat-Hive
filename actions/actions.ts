@@ -11,9 +11,10 @@ import {
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 export async function createUser(user: FirebaseUser) {
-  console.log("creating user in database: " + user.uid);
+  console.log("Creating user in database: " + user.uid);
   try {
     const userSnapshot = await adminDb.collection("users").doc(user.uid).get();
+
     if (
       !userSnapshot.exists &&
       user.displayName &&
@@ -28,10 +29,15 @@ export async function createUser(user: FirebaseUser) {
         chats: [],
         createdAt: Timestamp.now(),
       };
-      adminDb.collection("users").doc(user.uid).set(detailedUser);
+
+      // Wait for the document to be set
+      await adminDb.collection("users").doc(user.uid).set(detailedUser);
+      console.log("User created successfully in database:", user.uid);
+    } else {
+      console.log("User already exists or missing required data:", user.uid);
     }
   } catch (e) {
-    console.error(e);
+    console.error("Error creating user:", e);
   }
 }
 
