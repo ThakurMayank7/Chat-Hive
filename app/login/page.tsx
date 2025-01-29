@@ -2,12 +2,27 @@
 
 import { createUser } from "@/actions/actions";
 import { signInWithGoogle } from "@/firebase/auth";
+import { useAuth } from "@/hooks/useAuth";
 import GoogleIcon from "@/icons/GoogleLogo";
 import Logo from "@/icons/Logo";
 import { FirebaseUser } from "@/lib/types";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-function Login() {
+function LoginPage() {
+  const { user, loading } = useAuth();
+
+  const router = useRouter();
+
+  const [signing, setSigning] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user && !loading) {
+      setSigning(false);
+      router.push("/");
+    }
+  }, [user, loading, router]);
+
   const handleSignIn = async () => {
     console.log("signing in started");
     setSigning(true);
@@ -22,8 +37,6 @@ function Login() {
       setSigning(false);
     });
   };
-
-  const [signing, setSigning] = useState<boolean>(false);
 
   if (signing) {
     return (
@@ -48,7 +61,7 @@ function Login() {
         <Logo />
         <h1 className="font-serif text-center text-lg">Welcome to Task Hive</h1>
         <br />
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center sm:">
           <h2 className="text-sm">Sign In With Google to continue :</h2>
           <br />
           <button
@@ -66,4 +79,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginPage;

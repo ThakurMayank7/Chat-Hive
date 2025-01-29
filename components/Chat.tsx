@@ -16,6 +16,7 @@ import { db } from "@/firebase/firebaseConfig";
 import MessageSender from "./MessageSender";
 import { LoadingSpinner } from "./Spinners";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 interface ChatProps {
   chatData: ChatData | null;
@@ -23,6 +24,7 @@ interface ChatProps {
   newMessage: StoredMessage | null;
   sentMessageUpdate: (messageSent: StoredMessage) => void;
   selectedChat: string;
+  closeChat: VoidFunction;
 }
 
 function Chat({
@@ -31,6 +33,7 @@ function Chat({
   newMessage,
   sentMessageUpdate,
   selectedChat,
+  closeChat,
 }: ChatProps) {
   const MESSAGES_PER_PAGE: number = 25;
   const SCROLL_THRESHOLD: number = 100;
@@ -271,7 +274,12 @@ function Chat({
   return (
     <div className="flex flex-col h-full w-full bg-white border rounded-md">
       <div className="p-4 border-b bg-gray-100 flex flex-row items-center">
-        <Avatar className="border-2 border-black w-16 h-16 ml-4">
+        <IoMdArrowRoundBack
+          className="hover:cursor-pointer"
+          size={40}
+          onClick={() => closeChat()}
+        />
+        <Avatar className="border-2 border-black w-12 h-12 sm:w-16 sm:h-16 ml-4">
           <AvatarImage
             src={
               chatData.personData.data.profilePicture ||
@@ -282,7 +290,7 @@ function Chat({
             {chatData.personData.data.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <span className="text-5xl font-serif ml-8">
+        <span className="text-xl sm:text-3xl font-serif ml-8">
           {chatData.personData.data.name}
         </span>
         <BsThreeDotsVertical size={40} className="ml-auto" />
@@ -308,6 +316,11 @@ function Chat({
             message={msg.message}
           />
         ))}
+        {messages.length === 0 && (
+          <div className="flex justify-center items-center h-full text-gray-500">
+            No messages yet
+          </div>
+        )}
       </div>
 
       <MessageSender

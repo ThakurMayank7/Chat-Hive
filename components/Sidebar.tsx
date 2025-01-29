@@ -34,7 +34,7 @@ function Sidebar({
   const [searching, setSearching] = useState<boolean>(false);
 
   return (
-    <div className="w-80 flex flex-col border-r-2">
+    <div className="w-80 flex flex-col border-r-2 h-full">
       <ScrollArea className="h-full w-full">
         <div className="sticky top-0 z-10 flex flex-col py-2">
           <div
@@ -117,6 +117,7 @@ function Sidebar({
           <p>No Search Results Found</p>
         )}
       </ScrollArea>
+      <div className="sticky bottom-0 z-10 flex flex-col py-2 mt-auto">qwe</div>
     </div>
   );
 }

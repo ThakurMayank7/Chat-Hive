@@ -71,7 +71,7 @@ function Search({
     <div className="flex flex-row items-center justify-center my-2 gap-2">
       <MdOutlinePersonSearch size={24} />
       <input
-        className="bg-gray-200 rounded border-2 border-gray-400 text-sm p-1"
+        className="bg-gray-200 rounded border-2 border-gray-400 p-2 min-w-[75%]"
         type="search"
         value={query}
         onChange={handleQueryChanges}

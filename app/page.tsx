@@ -1,6 +1,5 @@
 "use client";
 
-import Login from "@/components/Login";
 import Sidebar from "@/components/Sidebar";
 import { ThreeDotsSpinner } from "@/components/Spinners";
 import { db } from "@/firebase/firebaseConfig";
@@ -17,6 +16,8 @@ import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import Chat from "@/components/Chat";
 import { getLatestMessage } from "@/lib/clientFunctions";
+import { useRouter } from "next/navigation";
+import MobileView from "@/components/MobileView";
 
 export default function Home() {
   const { loading, user } = useAuth();
@@ -36,6 +37,14 @@ export default function Home() {
   const [sentMessage, setSentMessage] = useState<StoredMessage | null>(null);
 
   const chatDataRef = useRef<ChatData[]>(chatData);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user && !loading) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     chatDataRef.current = chatData;
@@ -239,10 +248,6 @@ export default function Home() {
     }
   }, [user, loading]);
 
-  if (!user && !loading) {
-    return <Login />;
-  }
-
   if (loading || !user) {
     return (
       <div className="flex items-center justify-center h-screen w-screen">
@@ -252,38 +257,65 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-row">
-      <Sidebar
-        chatData={chatData}
-        selectedChat={selectedChat}
-        selectChat={(chatId: string | null) => setSelectedChat(chatId)}
-        syncState={syncing}
-        userData={userData || null}
-        user={{
-          uid: user.uid || "",
-          displayName: user.displayName || "",
-          email: user.email || "",
-          photoURL: user.photoURL || "",
-        }}
-        loading={loading}
-      />
-      <div className="flex items-center justify-center h-full w-full">
-        {selectedChat ? (
-          <Chat
+    <div className="h-screen w-screen">
+      {/* Desktop Devices */}
+      <div className="h-full w-full hidden sm:block">
+        <div className="h-full w-full flex flex-row">
+          <Sidebar
+            chatData={chatData}
             selectedChat={selectedChat}
-            sentMessageUpdate={(sent) => setSentMessage(sent)}
-            newMessage={newMessage}
-            chatData={
-              chatData.find((chat) => chat.metadata.chatId === selectedChat) ||
-              null
-            }
-            userId={user.uid}
+            selectChat={(chatId: string | null) => setSelectedChat(chatId)}
+            syncState={syncing}
+            userData={userData || null}
+            user={{
+              uid: user.uid || "",
+              displayName: user.displayName || "",
+              email: user.email || "",
+              photoURL: user.photoURL || "",
+            }}
+            loading={loading}
           />
-        ) : (
-          <span className="text-3xl text-gray-500">
-            Select a chat to start messaging
-          </span>
-        )}
+          <div className="flex items-center justify-center h-full w-full">
+            {selectedChat ? (
+              <Chat
+                closeChat={() => setSelectedChat(null)}
+                selectedChat={selectedChat}
+                sentMessageUpdate={(sent) => setSentMessage(sent)}
+                newMessage={newMessage}
+                chatData={
+                  chatData.find(
+                    (chat) => chat.metadata.chatId === selectedChat
+                  ) || null
+                }
+                userId={user.uid}
+              />
+            ) : (
+              <span className="text-3xl text-gray-500">
+                Select a chat to start messaging
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      {/* Mobile Devices */}
+      <div className="h-full w-full block sm:hidden text-black">
+        <MobileView
+          closeChat={() => setSelectedChat(null)}
+          sentMessageUpdate={(sent) => setSentMessage(sent)}
+          newMessage={newMessage}
+          chatData={chatData}
+          selectedChat={selectedChat}
+          selectChat={(chatId: string | null) => setSelectedChat(chatId)}
+          syncState={syncing}
+          userData={userData || null}
+          user={{
+            uid: user.uid || "",
+            displayName: user.displayName || "",
+            email: user.email || "",
+            photoURL: user.photoURL || "",
+          }}
+          loading={loading}
+        />
       </div>
     </div>
   );

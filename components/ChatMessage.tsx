@@ -17,34 +17,37 @@ function ChatMessage({ userId, message }: ChatMessageProps) {
           userId === message.sender ? "justify-end" : "justify-start"
         }`}
       >
-        {/* Message Container */}
         <div
-          className={`max-w-[75%] px-4 py-2 rounded-lg ${
+          className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
             userId === message.sender
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-black"
+              ? "bg-blue-600 text-white rounded-tr-sm"
+              : "bg-gray-100 text-gray-800 rounded-tl-sm"
           }`}
         >
-          <p className="break-words">{message.text}</p>
+          <p className="break-words text-sm leading-relaxed">{message.text}</p>
 
-          {/* Timestamp and Seen Status */}
           <div
-            className={`flex items-center gap-2 w-full text-xs mt-1 ${
+            className={`flex items-center gap-2 w-full text-xs mt-1.5 ${
               userId === message.sender
-                ? "text-blue-100 text-right"
+                ? "text-blue-200 text-right"
                 : "text-gray-500 text-left"
             }`}
           >
-            {/* Checkmark Icon */}
-            {message.sender !== userId &&
-              (message.seenBy.find((id) => id === userId) ? (
-                <IoCheckmarkDoneSharp color="black" size={48} />
-              ) : (
-                <IoCheckmarkOutline color="black" />
-              ))}
+            {message.sender !== userId && (
+              <div className="flex items-center">
+                {message.seenBy.find((id) => id === userId) ? (
+                  <IoCheckmarkDoneSharp className="text-gray-600" size={16} />
+                ) : (
+                  <IoCheckmarkOutline className="text-gray-400" size={14} />
+                )}
+              </div>
+            )}
 
-            {/* Timestamp */}
-            <span className={userId === message.sender ? "ml-auto" : "mr-auto"}>
+            <span
+              className={`${
+                userId === message.sender ? "ml-auto" : "mr-auto"
+              } opacity-75`}
+            >
               {message.sendAt instanceof Timestamp
                 ? message.sendAt.toDate().toLocaleTimeString([], {
                     hour: "2-digit",

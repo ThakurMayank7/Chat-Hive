@@ -33,7 +33,7 @@ function ChatPreview({
     >
       {chatData.personData ? (
         <div className="flex items-center p-2 space-x-2">
-          <Avatar className="border-2 border-black">
+          <Avatar className="border-2 border-black h-12 w-12">
             <AvatarImage src={chatData.personData.data.profilePicture.trim()} />
             <AvatarFallback>
               {chatData.personData.data.name.slice(0, 2).toUpperCase()}
@@ -42,7 +42,7 @@ function ChatPreview({
 
           <div className="flex-1">
             <div className="flex justify-between items-center">
-              <span className="font-medium">
+              <span className="font-medium text-xl">
                 {chatData.personData.data.name}
               </span>
               <div className="flex items-center space-x-2">
