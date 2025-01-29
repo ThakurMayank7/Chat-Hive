@@ -66,27 +66,6 @@ export async function checkExistingUser(query: string): Promise<string> {
     return "error";
   }
 }
-async function getParticipantDetails(
-  participant: string
-): Promise<UserData | null> {
-  try {
-    const docSnapshot = await adminDb
-      .collection("users")
-      .doc(participant)
-      .get();
-
-    if (docSnapshot.exists) {
-      // Use type assertion to specify the type of the document data
-      return docSnapshot.data() as UserData;
-    } else {
-      console.warn(`Document with ID ${participant} does not exist.`);
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching user document:", error);
-    return null;
-  }
-}
 
 export async function addNewPrivateChat({
   participants,
@@ -101,31 +80,6 @@ export async function addNewPrivateChat({
 
   try {
     const uniqueParticipants = Array.from(new Set(participants));
-    const searchKeys: string[] = [];
-
-    await Promise.all(
-      uniqueParticipants.map(async (participant) => {
-        try {
-          const participantDetails = await getParticipantDetails(participant);
-
-          if (participantDetails) {
-            console.log("Processing participant:", participantDetails);
-
-            if (participantDetails.name) {
-              searchKeys.push(...generateSearchKeys(participantDetails.name));
-            }
-            if (participantDetails.email) {
-              searchKeys.push(...generateSearchKeys(participantDetails.email));
-            }
-            searchKeys.push(participant);
-          } else {
-            console.warn(`No details found for participant: ${participant}`);
-          }
-        } catch (error) {
-          console.error(`Error processing participant: ${participant}`, error);
-        }
-      })
-    );
 
     const chatRef = adminDb.collection("chatMetaData").doc();
     console.log("Creating chat with ID:", chatRef.id);
@@ -142,17 +96,6 @@ export async function addNewPrivateChat({
     };
 
     await chatRef.set(chatMetadata);
-
-    const users: string[] = uniqueParticipants.map(
-      (participant) => participant
-    );
-    await adminDb
-      .collection("searchKeys")
-      .doc(chatRef.id)
-      .set({
-        users: users,
-        keys: Array.from(new Set(searchKeys)),
-      });
 
     await Promise.all(
       uniqueParticipants.map((participant) =>
@@ -175,24 +118,6 @@ export async function addNewPrivateChat({
     return false;
   }
 }
-
-function generateSearchKeys(parameter: string | undefined | null): string[] {
-  if (!parameter) return [];
-
-  const lowercaseParameter = parameter.toLowerCase().replace(/\s/g, "");
-  return Array.from(
-    new Set(
-      Array.from({ length: lowercaseParameter.length }, (_, i) =>
-        Array.from({ length: lowercaseParameter.length - i }, (_, j) =>
-          lowercaseParameter.slice(i, i + j + 1)
-        )
-      ).flat()
-    )
-  );
-}
-
-// Result for "John":
-// ["j", "jo", "joh", "john", "o", "oh", "ohn", "h", "hn", "n"]
 
 export async function sendTextMessage({
   chatId,
