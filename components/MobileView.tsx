@@ -10,6 +10,7 @@ import ChatPreview from "./ChatPreview";
 import { ThreeDotsSpinner } from "./Spinners";
 import { ScrollArea } from "./ui/scroll-area";
 import Chat from "./Chat";
+import AddChat from "./AddChat";
 
 interface MobileViewProps {
   syncState: boolean;
@@ -135,6 +136,11 @@ function MobileView({
           </ScrollArea>
         </>
       )}
+      <div className="absolute flex h-screen w-screen">
+        <div className="mt-auto mr-auto">
+          <AddChat uid={user.uid} chatData={chatData} userData={userData} />
+        </div>
+      </div>
     </div>
   );
 }
