@@ -117,7 +117,6 @@ function Sidebar({
           <p>No Search Results Found</p>
         )}
       </ScrollArea>
-      <div className="sticky bottom-0 z-10 flex flex-col py-2 mt-auto">qwe</div>
     </div>
   );
 }
